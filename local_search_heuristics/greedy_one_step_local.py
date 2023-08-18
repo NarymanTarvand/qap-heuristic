@@ -1,5 +1,9 @@
 import numpy as np
-from objective_functions import calculate_objective_vector_encoding
+from global_calculations import (
+    calculate_objective,
+    read_instance_data,
+    read_optimal_solution,
+)
 
 
 def generate_one_swap_neighbourhood(solution_encoding: list) -> list:
@@ -14,26 +18,30 @@ def generate_one_swap_neighbourhood(solution_encoding: list) -> list:
     return neighbourhood
 
 
-def calculate_neighbourhood_optimal_solution(neighbourhood):
+def calculate_neighbourhood_optimal_solution(
+    neighbourhood: list, flow: np.array, distance: np.array
+) -> tuple[list, float]:
     objective_values = []
     for candidate_solution in neighbourhood:
-        objective_values.append(calculate_objective_vector_encoding(candidate_solution))
+        objective_values.append(calculate_objective(candidate_solution, flow, distance))
     optimal_neighbour = neighbourhood[np.argmin(objective_values)]
     objective_value = np.min(objective_values)
 
     return optimal_neighbour, objective_value
 
 
-def greedy_one_step_local(solution_encoding: list) -> list:
+def greedy_one_step_local(
+    solution_encoding: list, flow: np.array, distance: np.array
+) -> list:
 
-    current_objective = calculate_objective_vector_encoding(solution_encoding)
+    current_objective = calculate_objective(solution_encoding, flow, distance)
 
     while True:
         neighbourhood = generate_one_swap_neighbourhood(solution_encoding)
         (
             candidate_solution,
             candidate_objective,
-        ) = calculate_neighbourhood_optimal_solution(neighbourhood)
+        ) = calculate_neighbourhood_optimal_solution(neighbourhood, flow, distance)
 
         if candidate_objective < current_objective:
             current_objective = candidate_objective
@@ -44,9 +52,15 @@ def greedy_one_step_local(solution_encoding: list) -> list:
 
 
 if __name__ == "__main__":
-    solution_encoding = [1, 2, 3, 4, 5]
+    instance_filepath = "data/qapdata/tai30b.dat"
+    flow, distance = read_instance_data(instance_filepath)
 
-    optimal_local_search_solution, objective = greedy_one_step_local(solution_encoding)
+    solution_encoding = [i for i in range(len(flow))]
+
+    read_optimal_solution("data/qapsoln/tai30b.sln")
+    optimal_local_search_solution, objective = greedy_one_step_local(
+        solution_encoding, flow, distance
+    )
     print(
         f"Optimal solution, {optimal_local_search_solution} has objective {objective}"
     )
