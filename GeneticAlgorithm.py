@@ -53,19 +53,7 @@ def Fitness(distance_data, flow_data, X_pop):
         for location_i, facility_i in enumerate(X_i):
             for location_j, facility_j in enumerate(X_i):
                 cost = cost + flow_data[facility_i,facility_j] * distance_data[location_i,location_j] #Computes Cost
-            
-        """
-        for j in range(len(X_i)): #For every element in X_i
-            interacting_facility = np.delete(X_i,np.where(X_i == X_i[j])) #Removes the facility in currently in question 
-                                                                          #and store all facilities that possible interact
-                                                                          #with the facility in question
-            interacting_location = np.delete(set_location,np.where(set_location == j)) #Removes the locations in currently in question 
-                                                                          #and store all locations that possible interact
-                                                                          #with the location in question
-            
-            for k in range(len(interacting_facility)): #len(interacting_facility) = len(interacting_locations)
-                cost = cost + flow_data[X_i[j]][interacting_facility[k]] * distance_data[j][interacting_location[k]] #Computes Fitness Value
-        """    
+               
         X_pop[i][1] = cost #Assign updated cost for the solution instance
     
     return X_pop
@@ -176,9 +164,13 @@ def Crossover(parent1,parent2):
         if(offspring2[k] == -1): #For every location where facilities are not assigned for offspring2
             offspring2[k] = new_assignment_sample2[m]
             m = m + 1
-            
-    new_offspring1.append([offspring1,cost])
-    new_offspring2.append([offspring2,cost])
+        
+    new_offspring1.append(offspring1)
+    new_offspring1.append(cost)
+    
+    new_offspring2.append(offspring2)
+    new_offspring2.append(cost)
+    
     return [new_offspring1,new_offspring2]
 
 
@@ -202,7 +194,7 @@ def Selection(X_pop, k):
 
 
 """
-Gentic Algorithm
+Genetic Algorithm
 INPUT:
 n - number of facilities or location
 N_pop - initial population size
@@ -289,12 +281,12 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
 
 
 #MAIN PROGRAM
-file_path = "Data Instance\\rou12.dat"
-[flow_data, distance_data] = read_instance_data(file_path)
-[solution,objective] = GeneticAlgorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
+#file_path = "Data Instance\\rou12.dat"
+#[flow_data, distance_data] = read_instance_data(file_path)
+#[solution,objective] = GeneticAlgorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
 
-print(solution)
-print(objective)
+#print(solution)
+#print(objective)
 
 
 
