@@ -235,7 +235,6 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
     current_population = Fitness(distance_data,flow_data,initial_population) #ISSUE OCCURS HERE initial_poulation does not change, needs to be current_population
     current_population.sort(key = lambda x: x[1]) #Sort in ascending order
     
-    
     while epoch < MaxIter:        
         current_solution = current_population[0][0] #Store the solution instance
         current_objective = current_population[0][1] #Store the lowest fittest value
@@ -250,23 +249,33 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
             #Select the best solution instance out of the population to take part in mating
             parent1 = Selection(current_population,k)
             parent2 = Selection(current_population,k)
+            p = random.random() #Generate random number between 0 and 1
             
-            #Generate two offsprings from the two parents chosen
-            [offspring1,offspring2] = Crossover(parent1,parent2)
+            if p <= 0.8:
+                #With Crossover
+                #Generate two offsprings from the two parents chosen
+                [offspring1,offspring2] = Crossover(parent1,parent2) 
+                
+                #offspring1 = [[Solution Instance],FitnessValue]
+                #offspring2 = [[Solution Instance],FitnessValue]
 
- 
-            #Mutate two elements in each offspring
-            new_offspring1 = Mutation(offspring1[0])
-            new_offspring2 = Mutation(offspring2[0])
+                q = random.random() #Generate random number between 0 and 1
+                if q <= 0.2:
+                    #With Mutation    
+                    #Mutate two elements in each offspring
+                    new_offspring1 = Mutation(offspring1)
+                    new_offspring2 = Mutation(offspring2)
             
-
-            current_generation.append(new_offspring1)
-            current_generation.append(new_offspring2)
-            
-            
-            
+                    current_generation.append([new_offspring1[0],new_offspring1[1]])
+                    current_generation.append([new_offspring2[0],new_offspring2[1]])
+                else:     
+                    #No Mutation 
+                    current_generation.append([offspring1[0],offspring1[1]])
+                    current_generation.append([offspring2[0],offspring2[1]])
+        
         current_population = current_generation #Store the new generation into population to evaluate fitness
         current_generation = [] #Sets new generation to be empty
+        
         
         #Recompute Fitness value of new generation
         current_population = Fitness(distance_data,flow_data,current_population) 
@@ -275,8 +284,6 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
         epoch = epoch + 1
         
     return [best_solution,best_objective]
-
-
 
 
 
