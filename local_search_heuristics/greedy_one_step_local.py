@@ -1,43 +1,49 @@
+from itertools import combinations
+
 import numpy as np
+
 from global_calculations import (
     calculate_objective,
     read_instance_data,
     read_optimal_solution,
 )
 
+from local_utils import calculate_neighbourhood_optimal_solution
 
-def generate_one_swap_neighbourhood(solution_encoding: list) -> list:
+def generate_one_adjacent_swap_neighbourhood(solution_encoding: list, n: int) -> list:
     neighbourhood = []
     for idx, _ in enumerate(solution_encoding):
         neighbour = solution_encoding.copy()
-        if idx + 1 == len(solution_encoding):
-            neighbour[idx], neighbour[0] = neighbour[0], neighbour[idx]
-        else:
-            neighbour[idx], neighbour[idx + 1] = neighbour[idx + 1], neighbour[idx]
+        neighbour[idx], neighbour[(idx + 1) % n] = neighbour[(idx + 1) % n], neighbour[idx]
         neighbourhood.append(neighbour)
     return neighbourhood
 
+def adjacent_swap_generator(solution_encoding: list, n: int):
+    idx = 0
+    neighbour = solution_encoding.copy()
+    while idx + 1 <= n:
+        neighbour[idx], neighbour[(idx + 1) % n] = neighbour[(idx + 1) % n], neighbour[idx]
+        yield neighbour
+        neighbour[(idx + 1) % n], neighbour[idx] = neighbour[idx], neighbour[(idx + 1) % n]
+        i += 1
 
-def calculate_neighbourhood_optimal_solution(
-    neighbourhood: list, flow: np.array, distance: np.array
-) -> tuple[list, float]:
-    objective_values = []
-    for candidate_solution in neighbourhood:
-        objective_values.append(calculate_objective(candidate_solution, flow, distance))
-    optimal_neighbour = neighbourhood[np.argmin(objective_values)]
-    objective_value = np.min(objective_values)
+def generate_one_total_swap_neighbourhood(solution_encoding: list, n: int) -> list:
+    """ generates n choose 2 neighbouring swaps """
+    neighbourhood = []
+    for idx1, idx2 in combinations(range(n), 2):
+        neighbour = solution_encoding.copy()
+        neighbour[idx1], neighbour[idx2] = neighbour[idx2], neighbour[idx1]
+        neighbourhood.append(neighbour)
+    return neighbourhood
 
-    return optimal_neighbour, objective_value
-
-
-def greedy_one_step_local(
-    solution_encoding: list, flow: np.array, distance: np.array
-) -> list:
+def greedy_local_search(
+    solution_encoding: list, flow: np.array, distance: np.array,
+    neighbourhood_builder) -> list:
 
     current_objective = calculate_objective(solution_encoding, flow, distance)
 
     while True:
-        neighbourhood = generate_one_swap_neighbourhood(solution_encoding)
+        neighbourhood = neighbourhood_builder(solution_encoding, n)
         (
             candidate_solution,
             candidate_objective,
@@ -54,12 +60,12 @@ def greedy_one_step_local(
 if __name__ == "__main__":
     instance_filepath = "data/qapdata/tai30b.dat"
     flow, distance = read_instance_data(instance_filepath)
-
-    solution_encoding = [i for i in range(len(flow))]
+    n = len(flow)
+    solution_encoding = [i for i in range(n)]
 
     read_optimal_solution("data/qapsoln/tai30b.sln")
-    optimal_local_search_solution, objective = greedy_one_step_local(
-        solution_encoding, flow, distance
+    optimal_local_search_solution, objective = greedy_local_search(
+        solution_encoding, flow, distance, generate_one_adjacent_swap_neighbourhood
     )
     print(
         f"Optimal solution, {optimal_local_search_solution} has objective {objective}"
