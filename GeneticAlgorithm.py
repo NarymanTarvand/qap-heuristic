@@ -3,12 +3,6 @@ import numpy as np #For array manipulations
 import random #for drawing random bits and setting seed
 import sys #Store the biggest number
 
-
-
-random.seed(1250778) #For consistent results
-
-
-
 """
 CreatePopulation Function
 INPUT: 
@@ -279,14 +273,17 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
 
 
 
+if __name__ == "__main__":
+    random.seed(1250778) #For consistent results
 
-#MAIN PROGRAM
-#file_path = "Data Instance\\rou12.dat"
-#[flow_data, distance_data] = read_instance_data(file_path)
-#[solution,objective] = GeneticAlgorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
 
-#print(solution)
-#print(objective)
+    
+    file_path = "Data Instance\\rou12.dat"
+    [flow_data, distance_data] = read_instance_data(file_path)
+    [solution,objective] = GeneticAlgorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
+
+    print(solution)
+    print(objective)
 
 
 
