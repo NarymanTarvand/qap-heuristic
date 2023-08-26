@@ -37,7 +37,6 @@ def greedy_one_step_local(
     current_objective = calculate_objective(solution_encoding, flow, distance)
 
     while True:
-        print(f"Objective value: {current_objective}")
         neighbourhood = generate_one_swap_neighbourhood(solution_encoding)
         (
             candidate_solution,
