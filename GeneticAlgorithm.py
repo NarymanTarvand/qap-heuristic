@@ -224,7 +224,7 @@ def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
     
     
     #Compute Objective for all solutions in iniital population
-    current_population = fitness(distance_data,flow_data,initial_population) #ISSUE OCCURS HERE initial_poulation does not change, needs to be current_population
+    current_population = fitness(distance_data,flow_data,initial_population) 
     current_population.sort(key = lambda x: x[1]) #Sort in ascending order
     
     while epoch < MaxIter:        
