@@ -4,7 +4,7 @@ import random #for drawing random bits and setting seed
 import sys #Store the biggest number
 
 
-def create_Population(N_pop,n):
+def create_population(N_pop,n):
     """
     Returns a list of solutions that are random and returns N_pop solutions with each having a cost of zero
         Parameters: 
@@ -188,7 +188,7 @@ def selection(X_pop, k):
 
 
 
-def genetic_Algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
+def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
     """
         The Main function to call to run the Genetic Algorithm. Returns the optimal solution
             Parameter:
@@ -210,7 +210,7 @@ def genetic_Algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
     #ASSUMPTION 
     #n >> 1
     #N_pop >> 1
-    initial_population = create_Population(N_pop,n)
+    initial_population = create_population(N_pop,n)
    
     current_solution = [] 
     current_objective = 0
@@ -282,7 +282,7 @@ def genetic_Algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
 if __name__ == "__main__":
     file_path = "Data Instance\\rou12.dat"
     [flow_data, distance_data] = read_instance_data(file_path)
-    [solution,objective] = genetic_Algorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
+    [solution,objective] = genetic_algorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
 
     print(solution)
     print(objective)
