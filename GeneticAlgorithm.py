@@ -3,18 +3,17 @@ import numpy as np #For array manipulations
 import random #for drawing random bits and setting seed
 import sys #Store the biggest number
 
-"""
-CreatePopulation Function
-INPUT: 
-N_pop - Population size
-n - number of facilities or location
 
-OUTPUT:
-X_pop - Population of random solutions
+def create_Population(N_pop,n):
+    """
+    Returns a list of solutions that are random and returns N_pop solutions with each having a cost of zero
+        Parameters: 
+            N_pop (int): Population size
+            n (int):  number of facilities or location
 
-The function creates a list of solutions that are random and returns N_pop solutions with each having a cost of zero
-"""
-def CreatePopulation(N_pop,n):
+        Returns:
+            X_pop (list) - Population of random solutions
+    """
     cost = 0 
     X_pop = []
     for i in range(N_pop):
@@ -25,17 +24,18 @@ def CreatePopulation(N_pop,n):
 
 
 
-"""
-Fitness Function
-INPUT:
-d_kp - Distance Data matrx, already imported as numpy array
-f_ij - Flow Data matrx, already imported as numpy array
-X_pop - N_ x 
 
-OUTPUT:
-X_pop -  N_pop x n matrix storing all N_pop random solutions
-"""
-def Fitness(distance_data, flow_data, X_pop):
+def fitness(distance_data, flow_data, X_pop):
+    """
+    Returns an updated fitness cost for every list in population
+        Parameter:
+            distance_data (matrix): Distance Data matrix
+            flow_data (matrix): Flow Data matrix
+            X_pop (list): N_pop x n matrix storing all N_pop random solutions
+
+        Returns:
+            X_pop (list) -  N_pop x n matrix storing all N_pop random solutions
+    """
     population = []
     #Creates a 1xn vector from 0 to n
     set_location = np.array(range(len(X_pop[0][0]))) #Issue is X_pop[0][0] may not exist
@@ -53,17 +53,15 @@ def Fitness(distance_data, flow_data, X_pop):
     return X_pop
 
 
-"""
-Mutation Function
-INPUT:
-offspring - solution instance of the form [[solution instance],fitness]
+def mutation(offspring):
+    """
+    Returns a swap of two elements in the offspring chromosome
+        Parameter:
+            offspring (list): solution instance of the form [[solution instance], fitness]
 
-OUTPUT:
-offspring - two elements in offspring have been swapped
-
-The Mutation function will sweap two elements in the offspring chromosome and return the new change
-"""
-def Mutation(offspring):
+        Returns:
+            offspring (list): two elements in offspring have been swapped
+    """
     #offspring is of the form [[solution instance],fitness value]
     index1 = random.randint(0,len(offspring[0])-1) #Generate random number between 0 to n-1
     index2 = random.randint(0,len(offspring[0])-1)
@@ -79,16 +77,18 @@ def Mutation(offspring):
 
 
 
-"""
-Crossover Function
-INPUT: 
-parent1 - one solution instance of the form [[solution instance],fitness value]
-parent2 - second solution instance of the form [[solution instance],fitness value]
 
-OUTPUT
-[offspring1,offspring2] - First and Second new solution produced by mating both parents
-"""
-def Crossover(parent1,parent2):
+def crossover(parent1,parent2):
+    """
+    Returns two offsprings after crossing two chromosomes from both parents
+        Parameter: 
+            parent1 (list): one solution instance of the form [[solution instance], fitness value]
+            parent2 (list): second solution instance of the form [[solution instance], fitness value]
+
+        Returns:
+            offspring1 (list): First new solution produced by mating both parents
+            offspring2 (list): Second new solution produced by mating both parents
+    """
     Assigned_Facility_Parent1 = []
     Assigned_Facility_Parent2 = []
     offspring1 = []
@@ -170,15 +170,15 @@ def Crossover(parent1,parent2):
 
 
 
-
-"""
-Selection Function
-INPUT:
-X_pop - list of solutions from population
-k - number of selected solutions to be picked before choosing the one best solution
-OUTPUT:
-"""
-def Selection(X_pop, k):
+def selection(X_pop, k):
+    """
+        Returns the best solutions by picking k solutions in the population
+            Parameter:
+                X_pop (list): list of solutions from population
+                k (int): number of selected solutions to be picked before choosing the one best solution
+            Returns:
+                k_selected_solutions[0] (list): Best solution out of the k chosen
+    """
     k_selected_solutions = random.sample(X_pop,k) #Sample without replacement k samples in the population
     k_selected_solutions.sort(key = lambda x: x[1]) #Sort the solutions in ascending order by the fitness value
     return k_selected_solutions[0]
@@ -187,24 +187,30 @@ def Selection(X_pop, k):
 
 
 
-"""
-Genetic Algorithm
-INPUT:
-n - number of facilities or location
-N_pop - initial population size
-distance_data - Distance Data matrix
-flow_data - Flow Data matrix
-MaxIter - Maximum number of iterations to terminate the number of epochs
-k - Number of solutions to select in the selection function
-OUTPUT:
-X_opt - Final Solution instance
-The Main function to call to run the Genetic Algorithm
-"""
-def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
+
+def genetic_Algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
+    """
+        The Main function to call to run the Genetic Algorithm. Returns the optimal solution
+            Parameter:
+                n (int): number of facilities or location
+                N_pop (int): initial population size
+                distance_data (matrix): Distance Data matrix
+                flow_data (matrix): Flow Data matrix
+                MaxIter (int): Maximum number of iterations to terminate the number of epochs
+                k (int): Number of solutions to select in the selection function
+                p_crossover (float): probability of crossover
+                p_mutation (float): probability of mutation
+        Returns:
+            X_opt (list): Final Solution instance
+
+    """
+    
+    
+    
     #ASSUMPTION 
     #n >> 1
     #N_pop >> 1
-    initial_population = CreatePopulation(N_pop,n)
+    initial_population = create_Population(N_pop,n)
    
     current_solution = [] 
     current_objective = 0
@@ -218,7 +224,7 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
     
     
     #Compute Objective for all solutions in iniital population
-    current_population = Fitness(distance_data,flow_data,initial_population) #ISSUE OCCURS HERE initial_poulation does not change, needs to be current_population
+    current_population = fitness(distance_data,flow_data,initial_population) #ISSUE OCCURS HERE initial_poulation does not change, needs to be current_population
     current_population.sort(key = lambda x: x[1]) #Sort in ascending order
     
     while epoch < MaxIter:        
@@ -233,24 +239,24 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
             #Generate many offspring for the next generation
             
             #Select the best solution instance out of the population to take part in mating
-            parent1 = Selection(current_population,k)
-            parent2 = Selection(current_population,k)
+            parent1 = selection(current_population,k)
+            parent2 = selection(current_population,k)
             p = random.random() #Generate random number between 0 and 1
             
-            if p <= 0.8:
+            if p <= p_crossover:
                 #With Crossover
                 #Generate two offsprings from the two parents chosen
-                [offspring1,offspring2] = Crossover(parent1,parent2) 
+                [offspring1,offspring2] = crossover(parent1,parent2) 
                 
                 #offspring1 = [[Solution Instance],FitnessValue]
                 #offspring2 = [[Solution Instance],FitnessValue]
 
                 q = random.random() #Generate random number between 0 and 1
-                if q <= 0.2:
+                if q <= p_mutation:
                     #With Mutation    
                     #Mutate two elements in each offspring
-                    new_offspring1 = Mutation(offspring1)
-                    new_offspring2 = Mutation(offspring2)
+                    new_offspring1 = mutation(offspring1)
+                    new_offspring2 = mutation(offspring2)
             
                     current_generation.append([new_offspring1[0],new_offspring1[1]])
                     current_generation.append([new_offspring2[0],new_offspring2[1]])
@@ -264,7 +270,7 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
         
         
         #Recompute Fitness value of new generation
-        current_population = Fitness(distance_data,flow_data,current_population) 
+        current_population = fitness(distance_data,flow_data,current_population) 
         current_population.sort(key = lambda x: x[1]) #Sort in ascending order
         
         epoch = epoch + 1
@@ -274,13 +280,9 @@ def GeneticAlgorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
 
 
 if __name__ == "__main__":
-    random.seed(1250778) #For consistent results
-
-
-    
     file_path = "Data Instance\\rou12.dat"
     [flow_data, distance_data] = read_instance_data(file_path)
-    [solution,objective] = GeneticAlgorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
+    [solution,objective] = genetic_Algorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
 
     print(solution)
     print(objective)
