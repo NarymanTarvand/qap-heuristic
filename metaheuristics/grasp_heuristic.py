@@ -96,7 +96,6 @@ if __name__ == "__main__":
 
     solution_encoding = [i for i in range(len(flow))]
 
-    read_optimal_solution("data/qapsoln/tai30b.sln")
     optimal_local_search_solution, objective = grasp_heuristic(
         n_iterations=100,
         n_candidates=10,
