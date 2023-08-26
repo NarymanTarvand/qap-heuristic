@@ -43,12 +43,16 @@ def fitness(distance_data, flow_data, X_pop):
         cost = 0
         X_i = np.array(X_pop[i][0]) #Store the solution instance for a solution in the population. If the form [1,5,4,2,3]
 
-       
-        for location_i, facility_i in enumerate(X_i):
-            for location_j, facility_j in enumerate(X_i):
-                cost = cost + flow_data[facility_i,facility_j] * distance_data[location_i,location_j] #Computes Cost
-               
+        cost = calculate_objective(X_i, flow_data, distance_data) #Computes Cost
+        
         X_pop[i][1] = cost #Assign updated cost for the solution instance
+
+
+
+
+
+
+
     
     return X_pop
 
