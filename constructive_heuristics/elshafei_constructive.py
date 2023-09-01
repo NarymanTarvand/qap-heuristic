@@ -19,6 +19,12 @@ def calculate_partial_objective(partial_solution_encoding,
     
     return cost
 
+def augment_solution(solution, facility_mask, location_mask, 
+                     new_facility, new_location) -> None:
+    solution[new_facility] = new_location
+    facility_mask[new_facility] = 1
+    location_mask[new_location] = 1
+
 def step1(n, distance) -> list:
     return sorted(range(n), key=lambda x: np.sum(distance[x, :]))
 
@@ -89,9 +95,10 @@ def elshafei_constructive(distance, flow):
     while (-1 in solution):
         new_facility, new_location = step4(facility_rank, location_rank, 
                                            facility_mask, location_mask)
-        solution[new_facility] = new_location
-        facility_mask[new_facility] = 1
-        location_mask[new_location] = 1
+        
+        augment_solution(solution, facility_mask, location_mask, 
+                         new_facility, new_location)
+        
         obj = calculate_partial_objective(solution, distance, flow)
         key = 1
 
@@ -102,9 +109,10 @@ def elshafei_constructive(distance, flow):
             else:
                 max_interaction_facility, max_obj_delta_location = step5(n, new_facility, facility_mask, 
                                                                          location_mask, flow, distance, solution)
-                solution[max_interaction_facility] = max_obj_delta_location
-                facility_mask[max_interaction_facility] = 1
-                location_mask[max_obj_delta_location] = 1
+                
+                augment_solution(solution, facility_mask, location_mask, 
+                                 max_interaction_facility, max_obj_delta_location)
+                
                 obj = calculate_partial_objective(solution, distance, flow)
 
                 key = 2
