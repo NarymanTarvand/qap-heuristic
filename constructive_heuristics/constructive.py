@@ -82,25 +82,3 @@ def main_constructive(distance: np.array, flow: np.array) -> np.array:
         solution[L_tie[i]] = R[i]
         
     return solution
-
-def hospital_constructive(distance: np.array, flow: np.array) -> np.array:
-    n = distance.shape[0]
-    solution = np.full(n, -1)
-
-    R = sorted(range(n), key = lambda x: np.sum(distance[x, :]))
-
-    E_n = sorted(range(n), key = lambda x: len(np.nonzero(flow[:, x])), 
-                 reverse=True)
-    E_int = sorted(range(n), key = lambda x: np.sum(flow[:, x]) + np.sum(flow[x ,:]), reverse=True)
-
-    L_map = defaultdict(int)
-    for i in range(n):
-        L_map[i] = E_n.index(i) + E_int.index(i)
-    L = sorted(range(n), key = lambda x: L_map[x])
-    
-    for i in range(n):
-        solution[L[i]] = R[i]
-
-    #TODO: Finish this
-    
-    return solution
