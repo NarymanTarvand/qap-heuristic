@@ -1,4 +1,11 @@
+import sys
+import warnings
+
 import numpy as np
+
+sys.path.append('..') 
+
+from global_calculations import read_instance_data
 
 # Implements constructive heuristic from [1]
 #  |  [1]  Hospital Layout as a Quadratic Assignment Problem, 
@@ -21,6 +28,7 @@ def calculate_partial_objective(partial_solution_encoding,
 
 def augment_solution(solution, facility_mask, location_mask, 
                      new_facility, new_location) -> None:
+    
     solution[new_facility] = new_location
     facility_mask[new_facility] = 1
     location_mask[new_location] = 1
@@ -37,9 +45,10 @@ def step2(n, distance, flow) -> list:
 
         total_interactions = np.sum(flow[: ,i]) + np.sum(flow[i, :]) - \
                              flow[i, i]
+        E_map[i] = (number_interactions, total_interactions)
 
-    E1_rank = sorted(range(n), key=lambda x: E_map[0][x], reverse=True)
-    E2_rank = sorted(range(n), key=lambda x: E_map[1][x], reverse=True)
+    E1_rank = sorted(range(n), key=lambda x: E_map[x][0], reverse=True)
+    E2_rank = sorted(range(n), key=lambda x: E_map[x][1], reverse=True)
 
     return sorted(range(n), key=lambda x: E1_rank.index(x) + E2_rank.index(x))
 
@@ -58,8 +67,10 @@ def step4(facility_rank, location_rank, facility_mask, location_mask) -> tuple:
 
 def step5(n, new_facility, facility_mask, location_mask, 
           flow, distance, solution):
+    
     max_interaction_facility = max([fac for fac in range(n) if facility_mask[fac] == 0],
                                    key=lambda x: flow[x, new_facility] + flow[new_facility, x])
+    
     max_obj_delta_location = min([loc for loc in range(n) if location_mask[loc] == 0],
                                  key=lambda x: calculate_partial_objective(solution, distance, flow))
     
@@ -74,15 +85,20 @@ def step6(solution, new_facility, new_location,
     swap_index = None
 
     for x in swap_locations:
-        swapped_solution[x], swapped_solution[new_facility] = swapped_solution[new_facility], swapped_solution[x]
+        swap_facility = np.where(swapped_solution == x)
+        swapped_solution[swap_facility], swapped_solution[new_facility] = swapped_solution[new_facility], swapped_solution[swap_facility]
         swapped_obj = calculate_partial_objective(swapped_solution, 
                                                   distance, flow)
-        swapped_solution[new_facility], swapped_solution[x] = swapped_solution[x], swapped_solution[new_facility]
+        
+        swapped_solution[new_facility], swapped_solution[swap_facility] = swapped_solution[swap_facility], swapped_solution[new_facility]
+
         if swapped_obj < obj:
             obj = swapped_obj
             swap_index = x
     
-    solution[swap_index], solution[new_facility] = solution[new_facility], solution[swap_index]
+    if swap_index is not None:
+        swapped_facility = np.where(swapped_solution == swap_index)
+        solution[swapped_facility], solution[new_facility] = solution[new_facility], solution[swapped_facility]
 
 def elshafei_constructive(distance, flow):
     n = len(distance)
@@ -93,6 +109,9 @@ def elshafei_constructive(distance, flow):
 
     # step 3: check whether any facility remains unassigned
     while (-1 in solution):
+        unique, counts = np.unique(solution, return_counts=True)
+        print(dict(zip(unique, counts))[-1])
+
         new_facility, new_location = step4(facility_rank, location_rank, 
                                            facility_mask, location_mask)
         
@@ -104,12 +123,12 @@ def elshafei_constructive(distance, flow):
 
         step6(solution, new_facility, new_location, distance, flow, obj)
         if key == 1:
-            if -1 in solution:
+            if -1 not in solution:
                 return solution
             else:
+                
                 max_interaction_facility, max_obj_delta_location = step5(n, new_facility, facility_mask, 
                                                                          location_mask, flow, distance, solution)
-                
                 augment_solution(solution, facility_mask, location_mask, 
                                  max_interaction_facility, max_obj_delta_location)
                 
@@ -119,9 +138,12 @@ def elshafei_constructive(distance, flow):
                 step6(solution, max_interaction_facility, max_obj_delta_location, distance, flow, obj)
                 continue
         else:
-            continue
-
+            continue     
     return solution
 
-if __name__ == "main":
-    pass
+if __name__ == "__main__":
+    warnings.filterwarnings('ignore') # getting weird deprecation issue
+    distance, flow = read_instance_data("../../QAPInstances/tai150b.dat")
+    solution = elshafei_constructive(distance, flow)
+    print(f"found solution: {solution}")
+    print(calculate_partial_objective(solution, distance, flow))
