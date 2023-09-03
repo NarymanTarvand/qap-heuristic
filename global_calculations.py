@@ -37,10 +37,16 @@ def calculate_objective(
 
     return cost
 
-def incremental_calculate_objective(current_encoding: np.array, n: int,
+def calculate_objective_incremental(current_encoding: np.array, n: int,
                                     current_objective: int, swap_index: tuple,
-                                    flow: np.array, distance: np.array) -> int:
+                                    flow: np.array, distance: np.array
+) -> int:
+    
+    """ calculate new objective function given permutation (x, y), 
+        representing a swap of index x to index y"""
+    # TODO: might clean this up later but its fragile    
     cost = current_objective
+    
     for i in range(n):
         if i in swap_index:
             for j in range(n):
