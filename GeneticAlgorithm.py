@@ -196,7 +196,7 @@ def selection(X_pop, pop_size):
     prob_list = inverted_fitness / inverted_fitness.sum()
     
 
-    #Single Selection Method
+    #Roulette Selection Method
     #Chooses a parent based on index of the current population
     selected_index1 = int(np.random.choice(pop_size, 1 ,p=prob_list))
     selected_index2 = int(np.random.choice(pop_size, 1 ,p=prob_list))
