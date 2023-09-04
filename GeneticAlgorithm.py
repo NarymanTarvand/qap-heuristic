@@ -192,7 +192,7 @@ def selection(X_pop, k):
 
 
 
-def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
+def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,p_crossover,p_mutation):
     """
         The Main function to call to run the Genetic Algorithm. Returns the optimal solution
             Parameter:
@@ -201,57 +201,62 @@ def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
                 distance_data (matrix): Distance Data matrix
                 flow_data (matrix): Flow Data matrix
                 MaxIter (int): Maximum number of iterations to terminate the number of epochs
-                k (int): Number of solutions to select in the selection function
                 p_crossover (float): probability of crossover
                 p_mutation (float): probability of mutation
         Returns:
             X_opt (list): Final Solution instance
-
     """
-    
-    
-    
+
+
+
     #ASSUMPTION 
     #n >> 1
     #N_pop >> 1
     initial_population = create_population(N_pop,n)
-   
+
     current_solution = [] 
     current_objective = 0
-    
+
     best_objective = sys.maxsize #Set best objective value to infinity
     best_solution = []
-    
-    
+
+
     current_generation = []
     epoch = 0 #Initial Iteration number
-    
-    
+
+
     #Compute Objective for all solutions in iniital population
     current_population = fitness(distance_data,flow_data,initial_population) 
-    current_population.sort(key = lambda x: x[1]) #Sort in ascending order
+    
+    
+    
+    solution = min(current_population, key=lambda x:x[1]) #Returns the minimum fitness(cost) of the entire population
+
+
+    
+    
     
     while epoch < MaxIter:        
-        current_solution = current_population[0][0] #Store the solution instance
-        current_objective = current_population[0][1] #Store the lowest fittest value
-            
+        current_solution = solution[0] #Store the solution instance
+        current_objective = solution[1] #Store the lowest fittest value
+
         if(current_objective < best_objective):
             best_objective = current_objective #Replace best objective to the current solution
             best_solution = current_solution  #Store the best solution instance
-            
+
         while(len(current_generation) < N_pop):
             #Generate many offspring for the next generation
-            
+
             #Select the best solution instance out of the population to take part in mating
-            parent1 = selection(current_population,k)
-            parent2 = selection(current_population,k)
-            p = random.random() #Generate random number between 0 and 1
+            parent1,parent2 = selection(current_population, len(current_population))
             
+            p = random.random() #Generate random number between 0 and 1
+
             if p <= p_crossover:
                 #With Crossover
                 #Generate two offsprings from the two parents chosen
                 [offspring1,offspring2] = crossover(parent1,parent2) 
-                
+
                 #offspring1 = [[Solution Instance],FitnessValue]
                 #offspring2 = [[Solution Instance],FitnessValue]
 
@@ -261,24 +266,25 @@ def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
                     #Mutate two elements in each offspring
                     new_offspring1 = mutation(offspring1)
                     new_offspring2 = mutation(offspring2)
-            
+
                     current_generation.append([new_offspring1[0],new_offspring1[1]])
                     current_generation.append([new_offspring2[0],new_offspring2[1]])
                 else:     
                     #No Mutation 
                     current_generation.append([offspring1[0],offspring1[1]])
                     current_generation.append([offspring2[0],offspring2[1]])
-        
+
         current_population = current_generation #Store the new generation into population to evaluate fitness
         current_generation = [] #Sets new generation to be empty
-        
-        
+
+
         #Recompute Fitness value of new generation
         current_population = fitness(distance_data,flow_data,current_population) 
-        current_population.sort(key = lambda x: x[1]) #Sort in ascending order
         
+        solution = min(current_population, key=lambda x:x[1]) #Returns the minimum fitness(cost) of the entire population
+
         epoch = epoch + 1
-        
+
     return [best_solution,best_objective]
 
 
