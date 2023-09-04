@@ -284,12 +284,22 @@ def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,k):
 
 
 if __name__ == "__main__":
-    file_path = "Data Instance\\rou12.dat"
+    #file_path = "Data Instance\\rou12.dat"
+    file_path = "Data Instance\\tai256c.dat" 
+    # N_pop = 50, MaxIter = 100, p_cross = 0.8, p_mutate = 0.2 -> Time ~115.75 sec
+    # N_pop = 20, MaxIter = 100, p_cross = 0.8, p_mutate = 0.2 -> Time ~46.07 sec
+    # N_pop = 50, MaxIter = 100,  p_cross = 0.8, p_mutate = 0.8 -> Time ~115.34 sec
+    # N_pop = 50, MaxIter = 1000,  p_cross = 0.8, p_mutate = 0.8 -> Time ~1137.97 sec
+    # N_pop = 250, MaxIter = 100,  p_cross = 0.8, p_mutate = 0.8 -> Time ~ 576.79 sec, Z = 50061698
+    # N_pop = 10, MaxIter = 10000,  p_cross = 0.8, p_mutate = 0.1 -> Time ~ 2279.39 sec, Z = 49466068
     [flow_data, distance_data] = read_instance_data(file_path)
-    [solution,objective] = genetic_algorithm(np.shape(flow_data)[0],50,distance_data,flow_data,1000,10)
+    
+    start_time = time.time()
+    [solution,objective] = genetic_algorithm(np.shape(flow_data)[0],50,distance_data,flow_data,100,0.8,0.8)
 
     print(solution)
     print(objective)
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 
 
