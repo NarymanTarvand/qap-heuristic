@@ -173,21 +173,45 @@ def crossover(parent1,parent2):
 
 
 
-
-def selection(X_pop, k):
+def selection(X_pop, pop_size):
     """
         Returns the best solutions by picking k solutions in the population
             Parameter:
                 X_pop (list): list of solutions from population
-                k (int): number of selected solutions to be picked before choosing the one best solution
+                pop_size (int): Current population size
             Returns:
-                k_selected_solutions[0] (list): Best solution out of the k chosen
+                selected_solution1,selected_solution2 (list): Best two best solution out of entire population
     """
-    k_selected_solutions = random.sample(X_pop,k) #Sample without replacement k samples in the population
-    k_selected_solutions.sort(key = lambda x: x[1]) #Sort the solutions in ascending order by the fitness value
-    return k_selected_solutions[0]
+    
+        
+    #Return only the fitness value for every solution in population as a list
+    extracted_fitness = np.array(list(map(lambda x: x[1], X_pop))) 
+    
+    #Invert fitness value
+    #Minimisation problem, so small fitness is best
+    #Want objective(fitness) that is small to be more likely to be chosen
+    inverted_fitness = 1 / extracted_fitness
+    
+    #current_fitness / total_fitness
+    prob_list = inverted_fitness / inverted_fitness.sum()
+    
 
-
+    #Single Selection Method
+    #Chooses a parent based on index of the current population
+    selected_index1 = int(np.random.choice(pop_size, 1 ,p=prob_list))
+    selected_index2 = int(np.random.choice(pop_size, 1 ,p=prob_list))
+    
+    while(selected_index1 == selected_index2):
+        #If a parent is chosen twice
+        #Chose another parent that is not itself
+        selected_index2 = int(np.random.choice(pop_size, 1 ,p=prob_list))
+    
+    
+    
+    selected_solution1 = X_pop[selected_index1] #Parent1
+    selected_solution2 = X_pop[selected_index2] #Parent2
+    
+    return [selected_solution1, selected_solution2]
 
 
 
