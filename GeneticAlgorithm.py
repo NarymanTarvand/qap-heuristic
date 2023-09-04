@@ -2,7 +2,7 @@
 import numpy as np #For array manipulations
 import random #for drawing random bits and setting seed
 import sys #Store the biggest number
-
+import time
 
 def create_population(N_pop,n):
     """
