@@ -82,9 +82,9 @@ def mutation(offspring):
 
 
 
-def crossover(parent1,parent2):
+def crossover_uniform(parent1,parent2):
     """
-    Returns two offsprings after crossing two chromosomes from both parents
+    Returns two offsprings after crossing two parents using uniform crossover
         Parameter: 
             parent1 (list): one solution instance of the form [[solution instance], fitness value]
             parent2 (list): second solution instance of the form [[solution instance], fitness value]
@@ -169,6 +169,149 @@ def crossover(parent1,parent2):
     new_offspring2.append(offspring2)
     new_offspring2.append(cost)
     
+    return [new_offspring1,new_offspring2]
+
+
+
+def crossover_two_partial_map(parent1,parent2):
+    """
+    Returns two offsprings after crossing two parents using partial mapped 2 crossover method
+        Parameter: 
+            parent1 (list): one solution instance of the form [[solution instance], fitness value]
+            parent2 (list): second solution instance of the form [[solution instance], fitness value]
+
+        Returns:
+            offspring1 (list): First new solution produced by mating both parents
+            offspring2 (list): Second new solution produced by mating both parents
+    """
+    offspring1 = []
+    offspring2 = []
+    new_offspring1 = []
+    new_offspring2 = []
+    cost = 0
+    
+    
+    for i in range(len(parent1[0])):
+        offspring1.append(-1) #Sets every element in offspring to -1
+        offspring2.append(-1)
+    #At this stage both offspring solutions are of form [-1,-1,...,-1,-1]
+    
+    #Generate the start and end sequence 
+    [num1,num2] = random.sample(range(len(parent1[0])), 2) #Sample two numbers without replacement
+       
+    
+    
+    for i in range(min(num1,num2),max(num1,num2)+1):
+        offspring1[i] = parent2[0][i]#Store Parent2 sequence to offspring1
+        offspring2[i] = parent1[0][i]#Store Parent1 sequence to offspring2
+    
+    
+    #For calculations in PMX
+    #offspring1 = np.array(offspring1)
+    #offspring2 = np.array(offspring2)
+    
+    
+    
+    
+    ###########################################
+    #PARTIALLY MAPPED CROSSOVER(PMX) OPERATION#
+    ###########################################
+    
+    
+    LHS_end = min(num1,num2) #Records the end index of where the last -1 occurs on the LHS
+    RHS_end = max(num1,num2) #Records the end index of where the last -1 occurs on the RHS
+    
+    if(LHS_end != 0): 
+        #If the LHS has elements to fill
+        for j in range(LHS_end):
+            #For each -1 in Offsprings
+            
+            #PMX Parent1 fills into Offspring1
+            if(parent1[0][j] not in offspring1):
+                #Facility is not assigned in offspring1
+                #Assign and move on
+                offspring1[j] = parent1[0][j]
+            
+            else:
+                
+                #Facility is already assigned in offspring1
+                #Find the mapping
+                index1 = parent2[0].index(parent1[0][j]) #Finds the index in parent2 where element in parent1 occurs
+                while(offspring2[index1] in offspring1):
+                    #If element in offspring2 is in offspring1
+                    #Find the element that is not in offspring1 and set the element into offspring1
+                    index1 = parent2[0].index(offspring2[index1])
+                    
+                offspring1[j] = offspring2[index1] #offspring2[index1] is not in offspring1
+                
+            
+            #PMX Parent2 fills into Offspring2
+            if(parent2[0][j] not in offspring2):
+                #Facility is not assigned in offspring2
+                #Assign and move on
+                offspring2[j] = parent2[0][j]
+            
+            else:
+                #Facility is already assigned in offspring2
+                #Find the mapping
+                index2 = parent1[0].index(parent2[0][j]) #Finds the index in parent1 where element in parent2 occurs
+                while(offspring1[index2] in offspring2):
+                    #If element in offspring1 is in offspring2
+                    #Find the element that is not in offspring2 and set the element into offspring2
+                    index2 = parent1[0].index(offspring1[index2])
+                    
+                offspring2[j] = offspring1[index2] #offspring1[index2] is not in offspring2
+        
+    #Else If the LHS has not elements to fill, do not execute filling proccedure
+    
+    if(RHS_end+1 != len(parent1[0])): 
+        #If the RHS has elements to fill
+        for k in range(RHS_end+1,len(parent1[0])):
+            #For each -1 in Offsprings
+            
+            #PMX Parent1 fills into Offspring1
+            if(parent1[0][k] not in offspring1):
+                #Facility is not assigned in offspring1
+                #Assign and move on
+                offspring1[k] = parent1[0][k]
+            
+            else:
+                
+                #Facility is already assigned in offspring1
+                #Find the mapping
+                index1 = parent2[0].index(parent1[0][k]) #Finds the index in parent2 where element in parent1 occurs
+                while(offspring2[index1] in offspring1):
+                    #If element in offspring2 is in offspring1
+                    #Find the element that is not in offspring1 and set the element into offspring1
+                    index1 = parent2[0].index(offspring2[index1])
+                    
+                offspring1[k] = offspring2[index1] #offspring2[index1] is not in offspring1
+                
+            
+            #PMX Parent2 fills into Offspring2
+            if(parent2[0][k] not in offspring2):
+                #Facility is not assigned in offspring2
+                #Assign and move on
+                offspring2[k] = parent2[0][k]
+            
+            else:
+                #Facility is already assigned in offspring2
+                #Find the mapping
+                index2 = parent1[0].index(parent2[0][k]) #Finds the index in parent1 where element in parent2 occurs
+                while(offspring1[index2] in offspring2):
+                    #If element in offspring1 is in offspring2
+                    #Find the element that is not in offspring2 and set the element into offspring2
+                    index2 = parent1[0].index(offspring1[index2])
+                    
+                offspring2[k] = offspring1[index2] #offspring1[index2] is not in offspring2
+        
+    #Else If the RHS has not elements to fill, do not execute filling proccedure
+   
+    new_offspring1.append(offspring1)
+    new_offspring1.append(cost)
+    new_offspring2.append(offspring2)
+    new_offspring2.append(cost)
+
     return [new_offspring1,new_offspring2]
 
 
@@ -279,8 +422,8 @@ def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,p_crossover,p_mut
             if p <= p_crossover:
                 #With Crossover
                 #Generate two offsprings from the two parents chosen
-                [offspring1,offspring2] = crossover(parent1,parent2) 
-
+                #[offspring1,offspring2] = crossover_uniform(parent1,parent2) 
+                [offspring1,offspring2] =  crossover_two_partial_map(parent1,parent2) 
                 #offspring1 = [[Solution Instance],FitnessValue]
                 #offspring2 = [[Solution Instance],FitnessValue]
 
@@ -310,7 +453,6 @@ def genetic_algorithm(n,N_pop,distance_data, flow_data,MaxIter,p_crossover,p_mut
         epoch = epoch + 1
 
     return [best_solution,best_objective]
-
 
 
 if __name__ == "__main__":
