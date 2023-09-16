@@ -87,8 +87,8 @@ def grasp_heuristic(
 
 
 if __name__ == "__main__":
-    instance_filepath = "data/qapdata/tai30b.dat"
-    optimal_solution_filepath = "data/qapsoln/tai30b.sln"
+    instance_filepath = "data/qapdata/tai100b.dat"
+    optimal_solution_filepath = "data/qapsoln/tai100b.sln"
     flow, distance = read_instance_data(instance_filepath)
     optimal_objective, optimal_encoding = read_optimal_solution(
         optimal_solution_filepath
