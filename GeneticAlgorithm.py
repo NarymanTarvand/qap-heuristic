@@ -4,7 +4,6 @@ import random #for drawing random bits and setting seed
 import sys #Store the biggest number
 import time
 
-
 def create_population(N_pop,n):
     """
     Returns a list of solutions that are random and returns N_pop solutions with each having a cost of zero
@@ -179,7 +178,6 @@ def crossover_two_partial_map(parent1,parent2):
         Parameter: 
             parent1 (list): one solution instance of the form [[solution instance], fitness value]
             parent2 (list): second solution instance of the form [[solution instance], fitness value]
-
         Returns:
             offspring1 (list): First new solution produced by mating both parents
             offspring2 (list): Second new solution produced by mating both parents
@@ -311,9 +309,8 @@ def crossover_two_partial_map(parent1,parent2):
     new_offspring1.append(cost)
     new_offspring2.append(offspring2)
     new_offspring2.append(cost)
-
     return [new_offspring1,new_offspring2]
-
+  
 
 def selection(X_pop, pop_size):
     """
@@ -336,7 +333,6 @@ def selection(X_pop, pop_size):
     
     #current_fitness / total_fitness
     prob_list = inverted_fitness / inverted_fitness.sum()
-    
 
     #Roulette Selection Method
     #Chooses a parent based on index of the current population
@@ -354,8 +350,6 @@ def selection(X_pop, pop_size):
     selected_solution2 = X_pop[selected_index2] #Parent2
     
     return [selected_solution1, selected_solution2]
-
-
 
 
 
