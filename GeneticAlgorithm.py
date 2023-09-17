@@ -172,14 +172,12 @@ def crossover_uniform(parent1,parent2):
     return [new_offspring1,new_offspring2]
 
 
-
 def crossover_two_partial_map(parent1,parent2):
     """
     Returns two offsprings after crossing two parents using partial mapped 2 crossover method
         Parameter: 
             parent1 (list): one solution instance of the form [[solution instance], fitness value]
             parent2 (list): second solution instance of the form [[solution instance], fitness value]
-
         Returns:
             offspring1 (list): First new solution produced by mating both parents
             offspring2 (list): Second new solution produced by mating both parents
@@ -311,10 +309,8 @@ def crossover_two_partial_map(parent1,parent2):
     new_offspring1.append(cost)
     new_offspring2.append(offspring2)
     new_offspring2.append(cost)
-
     return [new_offspring1,new_offspring2]
-
-
+  
 
 def selection(X_pop, pop_size):
     """
@@ -337,7 +333,6 @@ def selection(X_pop, pop_size):
     
     #current_fitness / total_fitness
     prob_list = inverted_fitness / inverted_fitness.sum()
-    
 
     #Roulette Selection Method
     #Chooses a parent based on index of the current population
