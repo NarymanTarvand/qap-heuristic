@@ -36,3 +36,28 @@ def calculate_objective(
             cost += flow[object_i, object_j] * distance[location_i, location_j]
 
     return cost
+
+def calculate_objective_incremental(current_encoding: np.array, n: int,
+                                    current_objective: int, swap_index: tuple,
+                                    flow: np.array, distance: np.array
+) -> int:
+    
+    """ calculate new objective function given permutation (x, y), 
+        representing a swap of index x to index y"""
+    # TODO: might clean this up later but its fragile    
+    cost = current_objective
+    
+    for i in range(n):
+        if i in swap_index:
+            for j in range(n):
+                cost -= distance[current_encoding[i]][current_encoding[j]]*flow[i][j] 
+                
+                cost += distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][j] 
+        else:
+            cost -= distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][swap_index[0]] 
+            cost -= distance[current_encoding[i]][current_encoding[swap_index[1]]]*flow[i][swap_index[1]]
+            
+            cost += distance[current_encoding[i]][current_encoding[swap_index[1]]]*flow[i][swap_index[0]] 
+            cost += distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][swap_index[1]] 
+    
+    return cost
