@@ -30,6 +30,11 @@ def greedy_randomised(
     unassigned_locations = [i for i in range(n)]
     candidate_soln = [-1 for _ in range(n)]
 
+    # distance_copy = distance + distance.T() # then divide diagonal by 2
+    # flow_copy = flow + flow.T()
+    # TODO: move the randomised greedy into constructive folder.
+    # TODO: use the total neighbourhood local search.
+
     # get upper triangular index as these get us all possible flow and distance values.
     triu_idx = np.triu_indices(n, k=1)
 
@@ -139,8 +144,8 @@ def randomised_greedy_grasp(
 
 
 if __name__ == "__main__":
-    instance_filepath = "data/qapdata/chr12a.dat"
-    optimal_solution_filepath = "data/qapsoln/chr12a.sln"
+    instance_filepath = "data/qapdata/tai64c.dat"
+    optimal_solution_filepath = "data/qapsoln/tai64c.sln"
     flow, distance = read_instance_data(instance_filepath)
     optimal_objective, optimal_encoding = read_optimal_solution(
         optimal_solution_filepath
@@ -149,7 +154,7 @@ if __name__ == "__main__":
     greedy_randomised(flow, distance)
 
     optimal_randomised_greedy_grasp_solution, objective = randomised_greedy_grasp(
-        n_iterations=100,
+        n_iterations=10,
         flow=flow,
         distance=distance,
         search_method="local search",  # or "simulated annealing"
