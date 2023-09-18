@@ -30,10 +30,8 @@ def greedy_randomised(
     unassigned_locations = [i for i in range(n)]
     candidate_soln = [-1 for _ in range(n)]
 
-    # distance_copy = distance + distance.T() # then divide diagonal by 2
-    # flow_copy = flow + flow.T()
-    # TODO: move the randomised greedy into constructive folder.
-    # TODO: use the total neighbourhood local search.
+    distance_matrix = distance + np.transpose(distance)
+    flow_matrix = flow + np.transpose(flow)
 
     # get upper triangular index as these get us all possible flow and distance values.
     triu_idx = np.triu_indices(n, k=1)
@@ -42,15 +40,15 @@ def greedy_randomised(
         (triu_idx[0][idx], triu_idx[1][idx]) for idx in range(len(triu_idx[0]))
     ]
     sorted_distance_idx = [
-        x for _, x in sorted(zip(distance[triu_idx], triu_coordinates))
+        x for _, x in sorted(zip(distance_matrix[triu_idx], triu_coordinates))
     ]
     sorted_flow_idx = [
-        x for _, x in sorted(zip(flow[triu_idx], triu_coordinates), reverse=True)
+        x for _, x in sorted(zip(flow_matrix[triu_idx], triu_coordinates), reverse=True)
     ]
 
     # define costs as the smallest distance multiplied by the largest flow.
-    sorted_distance = sorted(distance[triu_idx])
-    sorted_flow = sorted(flow[triu_idx], reverse=True)
+    sorted_distance = sorted(distance_matrix[triu_idx])
+    sorted_flow = sorted(flow_matrix[triu_idx], reverse=True)
     costs = [a * b for a, b in zip(sorted_distance, sorted_flow)]
 
     # if 0 is in costs, randomly select a zero cost index,
@@ -91,8 +89,8 @@ def greedy_randomised(
                 for location_j in assigned_locations:
                     for facility_l in assigned_facilities:
                         potential_cost += (
-                            flow[location_i, location_j]
-                            * distance[facility_k, facility_l]
+                            flow_matrix[location_i, location_j]
+                            * distance_matrix[facility_k, facility_l]
                         )
                 cost_dict[(location_i, facility_k)] = potential_cost
 
