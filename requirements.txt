@@ -1,1 +1,5 @@
 numpy
+pandas
+matplotlib
+kmeans1d
+scikit-learn
