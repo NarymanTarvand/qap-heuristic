@@ -4,7 +4,7 @@ from global_calculations import (
     read_instance_data,
     read_optimal_solution,
 )
-from local_search_heuristics.local_search import greedy_local_search
+from local_search_heuristics.local_search import local_search
 from local_search_heuristics.neighbours import get_total_swap_neighbourhood
 from metaheuristics.simulated_annealing import simmulated_annealing
 
@@ -124,7 +124,8 @@ def randomised_greedy_grasp(
 
         if search_method == "local search":
             # TODO: have a neighbourhood parameter
-            local_descent_solution, local_descent_objective = greedy_local_search(
+            # TODO: local search last arguement
+            local_descent_solution, local_descent_objective = local_search(
                 candidate_solution, flow, distance, get_total_swap_neighbourhood
             )
         elif search_method == "simulated annealing":
