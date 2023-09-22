@@ -4,7 +4,8 @@ from global_calculations import (
     read_instance_data,
     read_optimal_solution,
 )
-from local_search_heuristics.greedy_one_step_local import greedy_one_step_local
+from local_search_heuristics.local_search import greedy_local_search
+from local_search_heuristics.neighbours import get_total_swap_neighbourhood
 from metaheuristics.simulated_annealing import simmulated_annealing
 
 
@@ -122,8 +123,9 @@ def randomised_greedy_grasp(
         candidate_solution = greedy_randomised(flow, distance)
 
         if search_method == "local search":
-            local_descent_solution, local_descent_objective = greedy_one_step_local(
-                candidate_solution, flow, distance
+            # TODO: have a neighbourhood parameter
+            local_descent_solution, local_descent_objective = greedy_local_search(
+                candidate_solution, flow, distance, get_total_swap_neighbourhood
             )
         elif search_method == "simulated annealing":
             local_descent_solution, local_descent_objective = simmulated_annealing(
@@ -155,7 +157,7 @@ if __name__ == "__main__":
         n_iterations=10,
         flow=flow,
         distance=distance,
-        search_method="local search",  # or "simulated annealing"
+        search_method="simulated annealing",  # or "simulated annealing"
     )
     print(
         f"Heuristic solution, {optimal_randomised_greedy_grasp_solution} has objective {objective}"

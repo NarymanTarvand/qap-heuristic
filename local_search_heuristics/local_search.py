@@ -9,8 +9,8 @@ from global_calculations import (
     read_optimal_solution,
 )
 
-from selection import *
-from neighbours import *
+from local_search_heuristics.selection import *
+from local_search_heuristics.neighbours import *
 
 def greedy_local_search(
     solution_encoding: list, flow: np.array, distance: np.array,
@@ -18,6 +18,7 @@ def greedy_local_search(
 ) -> list:
 
     current_objective = calculate_objective(solution_encoding, flow, distance)
+    n = len(flow)
 
     while True:
         neighbourhood = neighbourhood_builder(solution_encoding, n)
