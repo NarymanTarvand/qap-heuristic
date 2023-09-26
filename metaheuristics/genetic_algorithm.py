@@ -467,7 +467,7 @@ def genetic_algorithm(
 
         epoch = epoch + 1
 
-    return [best_solution, best_objective]
+    return best_solution, best_objective
 
 
 if __name__ == "__main__":

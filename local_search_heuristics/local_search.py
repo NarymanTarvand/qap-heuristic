@@ -45,18 +45,30 @@ def multistart(
     distance: np.array,
     neighbourhood_builder: Callable,
     k: int,
+    solution_selector: Callable = calculate_neighbourhood_optimal_solution,
+    deterministic_start: list = []
 ) -> Tuple[List[int], float]:
     
     # TODO: refactor for readability
     multistart_solutions = []
     multistart_costs = []
-
-    for _ in range(k):
-        solution_encoding = [i for i in range(n)]
-        random.shuffle(solution_encoding)
+    n = len(flow)
+    
+    given_start = False
+    if deterministic_start != []:
+        given_start = True
+        assert(len(deterministic_start) == k)
+        
+    for j in range(k):
+        if given_start:
+            solution_encoding = deterministic_start[j]
+        else:
+            solution_encoding = [i for i in range(n)]
+            random.shuffle(solution_encoding)
 
         solution_encoding, solution_cost = local_search(
-            solution_encoding, flow, distance, neighbourhood_builder
+            solution_encoding, flow, distance, neighbourhood_builder,
+            solution_selector
         )
 
         multistart_solutions.append(solution_encoding)
@@ -72,16 +84,26 @@ def disimilarity_local_search(
     distance: np.array,
     neighbourhood_builder: Callable,
     k: int,
+    deterministic_start: list = []
 ) -> Tuple[List[int], float]:
     
     n = len(flow)
     local_optima = []
     optima_costs = []
-
-    for _ in range(k):
-        # initial random feasible solution
-        solution_encoding = [i for i in range(n)]
-        random.shuffle(solution_encoding)
+    
+    given_start = False
+    if deterministic_start != []:
+        given_start = True
+        assert(len(deterministic_start) == k)
+    
+    for j in range(k):
+        # initial random feasible solution or given deterministic
+        if given_start:
+            solution_encoding = deterministic_start[j]
+        else:
+            solution_encoding = [i for i in range(n)]
+            random.shuffle(solution_encoding)
+            
         current_objective = calculate_objective(solution_encoding, flow, distance)
 
         while True:

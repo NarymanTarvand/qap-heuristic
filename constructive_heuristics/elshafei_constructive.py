@@ -139,7 +139,7 @@ def elshafei_constructive(distance, flow):
                 continue
         else:
             continue     
-    return solution
+    return solution, calculate_partial_objective(solution, distance, flow)
 
 if __name__ == "__main__":
     warnings.filterwarnings('ignore') # getting weird deprecation issue
