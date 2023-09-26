@@ -31,6 +31,8 @@ def calculate_neighbourhood_first_improvement(
 
 def compute_average_similarity(candidate: np.array, local_optima: list) -> float:
     n_optima = len(local_optima)
+    if n_optima == 0:
+        return 0
     similarity = sum([len(np.where(candidate == optima)[0]) for optima in local_optima])
     return (1 / n_optima) * similarity
 
@@ -50,13 +52,9 @@ def calculate_neighbourhood_improving_similar(
     if not improving_idx:
         return neighbourhood[0], obj_values[0]
     else:
-        similarity_vector = np.apply_along_axis(
-            lambda x: compute_average_similarity(x, local_optima),
-            0,
-            [i for i, j in enumerate(neighbourhood) if j in improving_idx],
-        )
+        similarity_vector = [compute_average_similarity(j, local_optima) for i, j in enumerate(neighbourhood) if i in improving_idx]
 
-        selected_index = neighbourhood[np.argmin(similarity_vector)]
+        selected_index = improving_idx[np.argmin(similarity_vector)]
 
         return neighbourhood[selected_index], obj_values[selected_index]
 
