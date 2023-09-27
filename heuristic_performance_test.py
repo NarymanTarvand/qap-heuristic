@@ -32,7 +32,7 @@ from metaheuristics.GRASP.randomised_greedy_grasp import (
 )
 
 def record_heuristic_performance(
-    data_directory: str = "data/qapchr/",
+    data_directory: str = "data/qaptai/",
     solution_directory: str = "data/qapsoln/",
     output_filepath: str = "data/heuristic_performance.csv",
 ) -> None:

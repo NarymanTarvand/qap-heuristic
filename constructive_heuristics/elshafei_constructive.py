@@ -104,13 +104,11 @@ def elshafei_constructive(distance, flow):
     n = len(distance)
     solution = np.full((1,n), -1)[0]
     facility_mask, location_mask = np.zeros(n), np.zeros(n)
-
     location_rank, facility_rank = step1(n, distance), step2(n, distance, flow)
-
     # step 3: check whether any facility remains unassigned
     while (-1 in solution):
-        unique, counts = np.unique(solution, return_counts=True)
-
+        #unique, counts = np.unique(solution, return_counts=True)
+        
         new_facility, new_location = step4(facility_rank, location_rank, 
                                            facility_mask, location_mask)
         
@@ -123,7 +121,7 @@ def elshafei_constructive(distance, flow):
         step6(solution, new_facility, new_location, distance, flow, obj)
         if key == 1:
             if -1 not in solution:
-                return solution
+                return solution, calculate_partial_objective(solution, distance, flow)
             else:
                 
                 max_interaction_facility, max_obj_delta_location = step5(n, new_facility, facility_mask, 
@@ -137,7 +135,7 @@ def elshafei_constructive(distance, flow):
                 step6(solution, max_interaction_facility, max_obj_delta_location, distance, flow, obj)
                 continue
         else:
-            continue     
+            continue
     return solution, calculate_partial_objective(solution, distance, flow)
 
 if __name__ == "__main__":
