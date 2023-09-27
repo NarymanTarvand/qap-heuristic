@@ -110,7 +110,6 @@ def elshafei_constructive(distance, flow):
     # step 3: check whether any facility remains unassigned
     while (-1 in solution):
         unique, counts = np.unique(solution, return_counts=True)
-        print(dict(zip(unique, counts))[-1])
 
         new_facility, new_location = step4(facility_rank, location_rank, 
                                            facility_mask, location_mask)

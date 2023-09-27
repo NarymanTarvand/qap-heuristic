@@ -31,7 +31,7 @@ def local_search(
             candidate_objective,
         ) = solution_selector(neighbourhood, flow, distance, current_objective)
 
-        if candidate_objective <= current_objective:
+        if candidate_objective < current_objective:
             current_objective = candidate_objective
             solution_encoding = candidate_solution
         else:
@@ -65,12 +65,10 @@ def multistart(
         else:
             solution_encoding = [i for i in range(n)]
             random.shuffle(solution_encoding)
-
         solution_encoding, solution_cost = local_search(
             solution_encoding, flow, distance, neighbourhood_builder,
             solution_selector
         )
-
         multistart_solutions.append(solution_encoding)
         multistart_costs.append(solution_cost)
 
