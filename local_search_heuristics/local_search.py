@@ -66,7 +66,6 @@ def local_search(
         objectives = [
             calculate_objective_incremental_vectorised(
                 current_encoding,
-                current_objective,
                 flow,
                 distance,
                 swap_idx[0],
@@ -193,14 +192,14 @@ def disimilarity_local_search(
 
 
 if __name__ == "__main__":
-    instance_filepath = "../data/qapdata/lipa50a.dat"
+    instance_filepath = "../data/qapdata/tai256c.dat"
     flow, distance = read_instance_data(instance_filepath)
     n = len(flow)
-    best_obj, _ = read_optimal_solution("../data/qapsoln/lipa50a.sln")
+    best_obj, _ = read_optimal_solution("../data/qapsoln/tai256c.sln")
 
     t0 = time.time()
-    fast_optimal_local_search_solution, fast_objective = disimilarity_local_search(
-        flow, distance, "total_swap", 25, [np.random.permutation(n) for _ in range(25)]
+    fast_optimal_local_search_solution, fast_objective = local_search(
+        list(range(n)), flow, distance
     )
     t1 = time.time()
     print(f"fast local search took {t1-t0}")
