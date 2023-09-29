@@ -57,7 +57,9 @@ def greedy_constructive(distance: np.array, flow: np.array) -> np.array:
 
 def main_constructive(distance: np.array, flow: np.array) -> np.array:
     """ main constructive heuristic """
-
+    distance_copy = distance.copy()
+    flow_copy = flow.copy()
+    
     # heuristic such that "flow" contain larger values
     if np.sum(distance) > np.sum(flow):
         flow, distance = distance, flow
@@ -83,4 +85,4 @@ def main_constructive(distance: np.array, flow: np.array) -> np.array:
     for i in range(n):
         solution[L_tie[i]] = R[i]
         
-    return solution, calculate_objective(solution, flow, distance)
+    return solution, calculate_objective(solution, flow_copy, distance_copy)
