@@ -9,14 +9,14 @@ from global_calculations import (
     calculate_objective_incremental,
     calculate_objective_incremental_vectorised,
     read_instance_data,
-    read_optimal_solution
+    read_optimal_solution,
 )
 
 from local_search_heuristics.selection import *
 from local_search_heuristics.neighbours import *
 
 
-def local_search(
+def slow_local_search(
     solution_encoding: list,
     flow: np.array,
     distance: np.array,
@@ -42,7 +42,7 @@ def local_search(
     return solution_encoding, current_objective
 
 
-def fast_local_search(
+def local_search(
     solution_encoding: list,
     flow: np.array,
     distance: np.array,
@@ -53,23 +53,42 @@ def fast_local_search(
     current_objective = calculate_objective(solution_encoding, flow, distance)
     current_encoding = solution_encoding
     n = len(flow)
-    neighbourhood = list(combinations(range(n), 2))
+
+    if neighbourhood_builder == "total_swap":
+        neighbourhood = list(combinations(range(n), 2))
+    elif neighbourhood_builder == "adjacent_swap":
+        neighbourhood = [(i, (i + 1) % (n + 1)) for i in range(n + 1)]
+    else:
+        raise Exception(
+            "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
+        )
+
     while True:
-        objectives = [calculate_objective_incremental_vectorised(current_encoding, current_objective, flow, distance, swap_idx[0], swap_idx[1]) for swap_idx in neighbourhood]
+        objectives = [
+            calculate_objective_incremental_vectorised(
+                current_encoding,
+                current_objective,
+                flow,
+                distance,
+                swap_idx[0],
+                swap_idx[1],
+            )
+            for swap_idx in neighbourhood
+        ]
         candidate_idx = np.argmin(objectives)
-        
+
         permutation = neighbourhood[candidate_idx]
         candidate_objective = objectives[candidate_idx]
-        
+
         if candidate_objective < current_objective:
             current_objective = candidate_objective
             swap(current_encoding, permutation[0], permutation[1])
         else:
             break
-        
+
     return current_encoding, current_objective
-            
-    
+
+
 def multistart(
     flow: np.array,
     distance: np.array,
@@ -164,16 +183,24 @@ if __name__ == "__main__":
     n = len(flow)
     best_obj, _ = read_optimal_solution("../data/qapsoln/lipa50a.sln")
 
-    t0=time.time()
-    optimal_local_search_solution, objective = local_search(list(range(n)), flow, distance, get_total_swap_neighbourhood, calculate_neighbourhood_optimal_solution)
-    t1=time.time()
+    t0 = time.time()
+    optimal_local_search_solution, objective = local_search(
+        list(range(n)),
+        flow,
+        distance,
+        get_total_swap_neighbourhood,
+        calculate_neighbourhood_optimal_solution,
+    )
+    t1 = time.time()
     print(f"regular local search took {t1-t0}")
 
-    t0=time.time()
-    fast_optimal_local_search_solution, fast_objective = fast_local_search(list(range(n)), flow, distance)
-    t1=time.time()
+    t0 = time.time()
+    fast_optimal_local_search_solution, fast_objective = fast_local_search(
+        list(range(n)), flow, distance
+    )
+    t1 = time.time()
     print(f"fast local search took {t1-t0}")
-    
+
     print(
         f"Optimal solution, {optimal_local_search_solution} has objective {objective}"
     )
