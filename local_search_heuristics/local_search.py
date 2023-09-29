@@ -16,30 +16,30 @@ from local_search_heuristics.selection import *
 from local_search_heuristics.neighbours import *
 
 
-def slow_local_search(
-    solution_encoding: list,
-    flow: np.array,
-    distance: np.array,
-    neighbourhood_builder: Callable = get_total_swap_neighbourhood,
-    solution_selector: Callable = calculate_neighbourhood_optimal_solution,
-) -> Tuple[List[int], float]:
+# def slow_local_search(
+#     solution_encoding: list,
+#     flow: np.array,
+#     distance: np.array,
+#     neighbourhood_builder: Callable = get_total_swap_neighbourhood,
+#     solution_selector: Callable = calculate_neighbourhood_optimal_solution,
+# ) -> Tuple[List[int], float]:
 
-    current_objective = calculate_objective(solution_encoding, flow, distance)
-    n = len(flow)
-    while True:
-        neighbourhood = neighbourhood_builder(solution_encoding, n)
-        (
-            candidate_solution,
-            candidate_objective,
-        ) = solution_selector(neighbourhood, flow, distance, current_objective)
+#     current_objective = calculate_objective(solution_encoding, flow, distance)
+#     n = len(flow)
+#     while True:
+#         neighbourhood = neighbourhood_builder(solution_encoding, n)
+#         (
+#             candidate_solution,
+#             candidate_objective,
+#         ) = solution_selector(neighbourhood, flow, distance, current_objective)
 
-        if candidate_objective < current_objective:
-            current_objective = candidate_objective
-            solution_encoding = candidate_solution
-        else:
-            break
+#         if candidate_objective < current_objective:
+#             current_objective = candidate_objective
+#             solution_encoding = candidate_solution
+#         else:
+#             break
 
-    return solution_encoding, current_objective
+#     return solution_encoding, current_objective
 
 
 def local_search(
@@ -75,11 +75,11 @@ def local_search(
             )
             for swap_idx in neighbourhood
         ]
-        
+
         if solution_selector == "best_improvement":
             candidate_idx = np.argmin(objectives)
         elif solution_selector == "first_improvement":
-            np.argmax(objectives < current_objective)
+            candidate_idx = np.argmax(objectives < current_objective)
         else:
             raise Exception(
                 "local_search solution_selector must be one of 'best_improvement', 'first_improvement'"
@@ -100,9 +100,9 @@ def local_search(
 def multistart(
     flow: np.array,
     distance: np.array,
-    neighbourhood_builder: Callable,
+    neighbourhood_builder: str,
     k: int,
-    solution_selector: Callable = calculate_neighbourhood_optimal_solution,
+    solution_selector: str,
     deterministic_start: list = [],
 ) -> Tuple[List[int], float]:
 
@@ -137,7 +137,7 @@ def multistart(
 def disimilarity_local_search(
     flow: np.array,
     distance: np.array,
-    neighbourhood_builder: Callable,
+    neighbourhood_builder: str,
     k: int,
     deterministic_start: list = [],
 ) -> Tuple[List[int], float]:

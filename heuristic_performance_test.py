@@ -29,12 +29,12 @@ from metaheuristics.genetic_algorithm import genetic_algorithm
 from metaheuristics.GRASP.randomised_greedy_grasp import randomised_greedy_grasp
 
 MULTISTART_PARAMETERS = [
-    (5, get_adjacent_swap_neighbourhood),
-    (5, get_total_swap_neighbourhood),
-    (10, get_adjacent_swap_neighbourhood),
-    (10, get_total_swap_neighbourhood),
-    # (25, get_adjacent_swap_neighbourhood),
-    # (25, get_total_swap_neighbourhood),
+    (5, "adjacent_swap"),
+    (5, "total_swap"),
+    (10, "adjacent_swap"),
+    (10, "total_swap"),
+    (25, "adjacent_swap"),
+    (25, "total_swap"),
     # (50, get_adjacent_swap_neighbourhood),
     # (100, get_adjacent_swap_neighbourhood),
 ]
@@ -65,13 +65,7 @@ def record_heuristic_performance(
 
     # Constructive Heuristics (+ descent, deterministic)
     elshafei_solution, elshafei_constructive_obj = elshafei_constructive(distance, flow)
-    _, elshafei_descent_obj = local_search(
-        elshafei_solution,
-        flow,
-        distance,
-        get_total_swap_neighbourhood,
-        calculate_neighbourhood_optimal_solution,
-    )
+    _, elshafei_descent_obj = local_search(elshafei_solution, flow, distance)
 
     performance_record["elshafei_constructive_objective"] = elshafei_constructive_obj
     performance_record[
@@ -84,8 +78,6 @@ def record_heuristic_performance(
         constructive_solution,
         flow,
         distance,
-        get_total_swap_neighbourhood,
-        calculate_neighbourhood_optimal_solution,
     )
 
     performance_record["constructive_objective"] = constructive_obj
@@ -102,7 +94,7 @@ def record_heuristic_performance(
             distance,
             builder,
             k,
-            calculate_neighbourhood_optimal_solution,
+            "best_improvement",
             deterministic_start=deterministic_starts,
         )
         _, FI_multistart_obj = multistart(
@@ -110,7 +102,7 @@ def record_heuristic_performance(
             distance,
             builder,
             k,
-            calculate_neighbourhood_first_improvement,
+            "first_improvement",
             deterministic_start=deterministic_starts,
         )
         _, dissimilarity_obj = disimilarity_local_search(
@@ -175,7 +167,7 @@ def record_heuristics_in_parallel(
             data_directory,
             solution_directory,
         )
-        for idx, instance_name in enumerate(valid_instance_names)
+        for idx, instance_name in enumerate(valid_instance_names[:3])
     )
 
     pd.DataFrame(records).to_csv(output_filepath, index=False)

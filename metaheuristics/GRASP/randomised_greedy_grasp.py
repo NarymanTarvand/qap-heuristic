@@ -123,10 +123,8 @@ def randomised_greedy_grasp(
         candidate_solution = greedy_randomised(flow, distance)
 
         if search_method == "local search":
-            # TODO: have a neighbourhood parameter
-            # TODO: local search last arguement
             local_descent_solution, local_descent_objective = local_search(
-                candidate_solution, flow, distance, get_total_swap_neighbourhood
+                candidate_solution, flow, distance
             )
         elif search_method == "simulated annealing":
             local_descent_solution, local_descent_objective = simmulated_annealing(
