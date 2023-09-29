@@ -1,6 +1,5 @@
 import random
 from typing import Tuple, List, Callable
-
 import numpy as np
 import time
 
@@ -151,6 +150,15 @@ def disimilarity_local_search(
         given_start = True
         assert len(deterministic_start) == k
 
+    if neighbourhood_builder == "total_swap":
+        neighbourhood = list(combinations(range(n), 2))
+    elif neighbourhood_builder == "adjacent_swap":
+        neighbourhood = [(i, (i + 1) % (n)) for i in range(n)]
+    else:
+        raise Exception(
+            "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
+        )
+    
     for j in range(k):
         # initial random feasible solution or given deterministic
         if given_start:
@@ -158,23 +166,15 @@ def disimilarity_local_search(
         else:
             solution_encoding = [i for i in range(n)]
             random.shuffle(solution_encoding)
-
+            
         current_objective = calculate_objective(solution_encoding, flow, distance)
 
         while True:
-            if neighbourhood_builder == "total_swap":
-                neighbourhood = list(combinations(range(n), 2))
-            elif neighbourhood_builder == "adjacent_swap":
-                neighbourhood = [(i, (i + 1) % (n)) for i in range(n)]
-            else:
-                raise Exception(
-                    "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
-                )
             (
                 candidate_solution,
                 candidate_objective,
             ) = calculate_neighbourhood_improving_similar(
-                neighbourhood, flow, distance, local_optima, current_objective
+                neighbourhood, flow, distance, local_optima, solution_encoding, current_objective
             )
 
             if candidate_objective < current_objective:
@@ -199,27 +199,12 @@ if __name__ == "__main__":
     best_obj, _ = read_optimal_solution("../data/qapsoln/lipa50a.sln")
 
     t0 = time.time()
-    optimal_local_search_solution, objective = local_search(
-        list(range(n)),
-        flow,
-        distance,
-        get_total_swap_neighbourhood,
-        calculate_neighbourhood_optimal_solution,
-    )
-    t1 = time.time()
-    print(f"regular local search took {t1-t0}")
-
-    t0 = time.time()
-    fast_optimal_local_search_solution, fast_objective = local_search(
-        list(range(n)), flow, distance
+    fast_optimal_local_search_solution, fast_objective = disimilarity_local_search(
+        flow, distance, "total_swap", 25, [np.random.permutation(n) for _ in range(25)]
     )
     t1 = time.time()
     print(f"fast local search took {t1-t0}")
-
-    print(
-        f"Optimal solution, {optimal_local_search_solution} has objective {objective}"
-    )
-
+    
     print(
         f"FAST Optimal solution, {fast_optimal_local_search_solution} has objective {fast_objective}"
     )
