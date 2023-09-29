@@ -162,7 +162,14 @@ def disimilarity_local_search(
         current_objective = calculate_objective(solution_encoding, flow, distance)
 
         while True:
-            neighbourhood = neighbourhood_builder(solution_encoding, n)
+            if neighbourhood_builder == "total_swap":
+                neighbourhood = list(combinations(range(n), 2))
+            elif neighbourhood_builder == "adjacent_swap":
+                neighbourhood = [(i, (i + 1) % (n)) for i in range(n)]
+            else:
+                raise Exception(
+                    "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
+                )
             (
                 candidate_solution,
                 candidate_objective,

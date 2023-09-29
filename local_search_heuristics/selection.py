@@ -52,7 +52,11 @@ def calculate_neighbourhood_improving_similar(
     if not improving_idx:
         return neighbourhood[0], obj_values[0]
     else:
-        similarity_vector = [compute_average_similarity(j, local_optima) for i, j in enumerate(neighbourhood) if i in improving_idx]
+        similarity_vector = [
+            compute_average_similarity(j, local_optima)
+            for i, j in enumerate(neighbourhood)
+            if i in improving_idx
+        ]
 
         selected_index = improving_idx[np.argmin(similarity_vector)]
 
