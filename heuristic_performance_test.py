@@ -39,7 +39,7 @@ MULTISTART_PARAMETERS = [
     # (100, get_adjacent_swap_neighbourhood),
 ]
 
-
+# TODO: add time recording to instances.
 @delayed
 def record_heuristic_performance(
     idx: int,
@@ -103,7 +103,7 @@ def record_heuristic_performance(
             builder,
             k,
             "first_improvement",
-            deterministic_start=deterministic_starts
+            deterministic_start=deterministic_starts,
         )
         _, dissimilarity_obj = disimilarity_local_search(
             flow, distance, builder, k, deterministic_start=deterministic_starts
@@ -167,7 +167,7 @@ def record_heuristics_in_parallel(
             data_directory,
             solution_directory,
         )
-        for idx, instance_name in enumerate(valid_instance_names[:10])
+        for idx, instance_name in enumerate(valid_instance_names)
     )
 
     pd.DataFrame(records).to_csv(output_filepath, index=False)
