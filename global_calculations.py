@@ -1,5 +1,5 @@
 import numpy as np
-
+from decimal import Decimal
 
 def read_instance_data(instance_fp: str) -> tuple[np.array, np.array]:
     with open(instance_fp) as f:
@@ -37,27 +37,47 @@ def calculate_objective(
 
     return cost
 
-def calculate_objective_incremental(current_encoding: np.array, n: int,
-                                    current_objective: int, swap_index: tuple,
-                                    flow: np.array, distance: np.array
-) -> int:
-    
-    """ calculate new objective function given permutation (x, y), 
-        representing a swap of index x to index y"""
-    # TODO: might clean this up later but its fragile    
-    cost = current_objective
-    
-    for i in range(n):
-        if i in swap_index:
-            for j in range(n):
-                cost -= distance[current_encoding[i]][current_encoding[j]]*flow[i][j] 
-                
-                cost += distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][j] 
-        else:
-            cost -= distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][swap_index[0]] 
-            cost -= distance[current_encoding[i]][current_encoding[swap_index[1]]]*flow[i][swap_index[1]]
-            
-            cost += distance[current_encoding[i]][current_encoding[swap_index[1]]]*flow[i][swap_index[0]] 
-            cost += distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][swap_index[1]] 
-    
-    return cost
+
+# def narys_test(current_encoding, current_objective, flow, distance, swap_idx_1, swap_idx_2):
+#     cost = current_objective.copy()
+#     pre_swap_cost_component = 0
+#     post_swap_cost_component = 0
+#     for object_i, location_i in enumerate(current_encoding):
+#         pre_swap_cost_component += flow[object_i, swap_idx_1] * distance[location_i, current_encoding[swap_idx_1]]
+#         pre_swap_cost_component += flow[object_i, swap_idx_2] * distance[location_i, current_encoding[swap_idx_2]]
+
+#         post_swap_cost_component += flow[object_i, swap_idx_1] * distance[location_i, current_encoding[swap_idx_2]]
+#         post_swap_cost_component += flow[object_i, swap_idx_2] * distance[location_i, current_encoding[swap_idx_1]]
+
+
+#     return cost + post_swap_cost_component - pre_swapz_cost_component
+
+def calculate_objective_incremental(p, n, curr_obj, flow, distance, a, b):
+    """Compute the change in the objective function after swapping facilities a and b in permutation p."""
+    delta = 0
+
+    for k in range(n):
+        if k != a and k != b:
+            delta += flow[a][k] * (distance[p[b]][p[k]] - distance[p[a]][p[k]]) + \
+                     flow[k][a] * (distance[p[k]][p[b]] - distance[p[k]][p[a]]) + \
+                     flow[b][k] * (distance[p[a]][p[k]] - distance[p[b]][p[k]]) + \
+                     flow[k][b] * (distance[p[k]][p[a]] - distance[p[k]][p[b]])
+
+    # Account for the direct interaction between the swapped facilities
+    delta += flow[a][b] * (distance[p[b]][p[a]] - distance[p[a]][p[b]]) + \
+             flow[b][a] * (distance[p[a]][p[b]] - distance[p[b]][p[a]])
+
+    return curr_obj + delta
+
+def calculate_objective_incremental_vectorised(current_encoding, current_objective, flow, distance, a, b):
+    # Create a new permutation with the swap applied
+    swapped_p = current_encoding.copy()
+    swapped_p[a], swapped_p[b] = swapped_p[b], swapped_p[a]
+
+    # Compute the original and new cost using vectorized matrix multiplication and summation
+    original_cost = np.sum(flow * distance[current_encoding][:, current_encoding])
+    new_cost = np.sum(flow * distance[swapped_p][:, swapped_p])
+
+    # Compute and return the delta
+    delta = new_cost - original_cost
+    return current_objective + delta
