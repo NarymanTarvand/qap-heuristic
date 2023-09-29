@@ -6,7 +6,7 @@ import time
 from global_calculations import (
     calculate_objective,
     calculate_objective_incremental,
-    calculate_objective_incremental_vectorised,
+    calculate_objective_vectorised,
     read_instance_data,
     read_optimal_solution,
 )
@@ -64,7 +64,7 @@ def local_search(
 
     while True:
         objectives = [
-            calculate_objective_incremental_vectorised(
+            calculate_objective_vectorised(
                 current_encoding,
                 flow,
                 distance,

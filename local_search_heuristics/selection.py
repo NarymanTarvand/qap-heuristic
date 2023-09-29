@@ -2,7 +2,7 @@ import sys
 
 import numpy as np
 
-from global_calculations import calculate_objective, calculate_objective_incremental_vectorised
+from global_calculations import calculate_objective, calculate_objective_vectorised
 from local_search_heuristics.neighbours import swap
 
 def calculate_neighbourhood_optimal_solution(
@@ -42,7 +42,7 @@ def calculate_neighbourhood_improving_similar(
 ) -> tuple[list, float]:
     
     obj_values = [
-        calculate_objective_incremental_vectorised(current_encoding, current_obj, flow, distance, swap_idx[0], swap_idx[1]) for swap_idx in neighbourhood
+        calculate_objective_vectorised(current_encoding, flow, distance, swap_idx[0], swap_idx[1]) for swap_idx in neighbourhood
     ]
 
     improving_idx = [

@@ -69,7 +69,7 @@ def calculate_objective_incremental(p, n, curr_obj, flow, distance, a, b):
 
     return curr_obj + delta
 
-def calculate_objective_incremental_vectorised(current_encoding, flow, distance, a, b):
+def calculate_objective_vectorised(current_encoding, flow, distance, a, b):
     # swap indices
     current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]
     
