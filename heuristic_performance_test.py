@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import time
+from joblib import Parallel, delayed
 
 from global_calculations import read_instance_data, read_optimal_solution
 
@@ -32,173 +33,153 @@ MULTISTART_PARAMETERS = [
     (5, get_total_swap_neighbourhood),
     (10, get_adjacent_swap_neighbourhood),
     (10, get_total_swap_neighbourhood),
-    (25, get_adjacent_swap_neighbourhood),
-    (25, get_total_swap_neighbourhood),
-    (50, get_adjacent_swap_neighbourhood),
-    (100, get_adjacent_swap_neighbourhood),
+    # (25, get_adjacent_swap_neighbourhood),
+    # (25, get_total_swap_neighbourhood),
+    # (50, get_adjacent_swap_neighbourhood),
+    # (100, get_adjacent_swap_neighbourhood),
 ]
 
 
+@delayed
 def record_heuristic_performance(
+    idx: int,
+    instance_name: str,
+    data_directory: str = "data/qapdata/",
+    solution_directory: str = "data/qapsoln/",
+) -> dict:
+
+    print(f"{idx}: {instance_name}")
+
+    performance_record = {}
+
+    optimal_solution_filepath = (
+        solution_directory + instance_name.split(".")[0] + ".sln"
+    )
+    optimal_objective, _ = read_optimal_solution(optimal_solution_filepath)
+
+    performance_record["instance"] = instance_name.split(".")[0]
+    performance_record["optimal_objective"] = optimal_objective
+
+    flow, distance = read_instance_data(data_directory + instance_name)
+    n = len(flow)
+
+    # Constructive Heuristics (+ descent, deterministic)
+    elshafei_solution, elshafei_constructive_obj = elshafei_constructive(distance, flow)
+    _, elshafei_descent_obj = local_search(
+        elshafei_solution,
+        flow,
+        distance,
+        get_total_swap_neighbourhood,
+        calculate_neighbourhood_optimal_solution,
+    )
+
+    performance_record["elshafei_constructive_objective"] = elshafei_constructive_obj
+    performance_record[
+        "elshafei_constructive_greedy_local_search_objective"
+    ] = elshafei_descent_obj
+
+    # standard constructive heuristic
+    constructive_solution, constructive_obj = main_constructive(distance, flow)
+    _, constructive_descent_obj = local_search(
+        constructive_solution,
+        flow,
+        distance,
+        get_total_swap_neighbourhood,
+        calculate_neighbourhood_optimal_solution,
+    )
+
+    performance_record["constructive_objective"] = constructive_obj
+    performance_record[
+        "constructive_greedy_local_search_objective"
+    ] = constructive_descent_obj
+
+    # Dissimilarity Comparison Experiment (vs. Multistart)
+    for k, builder in MULTISTART_PARAMETERS:
+        deterministic_starts = [np.random.permutation(n) for _ in range(k)]
+
+        _, multistart_obj = multistart(
+            flow,
+            distance,
+            builder,
+            k,
+            calculate_neighbourhood_optimal_solution,
+            deterministic_start=deterministic_starts,
+        )
+        _, FI_multistart_obj = multistart(
+            flow,
+            distance,
+            builder,
+            k,
+            calculate_neighbourhood_first_improvement,
+            deterministic_start=deterministic_starts,
+        )
+        _, dissimilarity_obj = disimilarity_local_search(
+            flow, distance, builder, k, deterministic_start=deterministic_starts
+        )
+
+        performance_record[
+            f"{k}_multistart_{builder.__name__.replace('get_', '')}_optimal_neighbour_objective"
+        ] = multistart_obj
+
+        performance_record[
+            f"{k}_multistart_{builder.__name__.replace('get_', '')}_first_improvement_objective"
+        ] = FI_multistart_obj
+
+        performance_record[
+            f"{k}_dissimilarity_local_search_{builder.__name__.replace('get_', '')}_objective"
+        ] = dissimilarity_obj
+
+    # GRASP (local search, simulated annealing as descent methods)
+    grasp_search_methods = ["local search", "simulated annealing"]
+    for search_method in grasp_search_methods:
+        _, grasp_obj = randomised_greedy_grasp(
+            n_iterations=25,
+            flow=flow,
+            distance=distance,
+            search_method=search_method,
+        )
+
+        performance_record[f"grasp_{search_method.replace(' ', '_')}"] = grasp_obj
+
+    # Genetic Algorithm
+    _, genetic_algorithm_obj = genetic_algorithm(
+        n,
+        N_pop=100,
+        distance_data=distance,
+        flow_data=flow,
+        MaxIter=150,
+        p_crossover=0.8,
+        p_mutation=0.2,
+    )
+    performance_record["genetic_algorithm"] = genetic_algorithm_obj
+
+    return performance_record
+
+
+def record_heuristics_in_parallel(
     data_directory: str = "data/qapdata/",
     solution_directory: str = "data/qapsoln/",
     output_filepath: str = "data/heuristic_performance.csv",
 ) -> None:
 
-    # TODO: remove print and time stuff
+    valid_instance_names = [
+        filename
+        for filename in os.listdir(data_directory)
+        if os.path.exists(solution_directory + filename.split(".")[0] + ".sln")
+    ]
 
-    records = defaultdict(list)
-
-    pbar = tqdm(os.listdir(data_directory)[:2])
-    for filename in pbar:
-        pbar.set_description(f"Processing {filename}")
-        optimal_solution_filepath = solution_directory + filename.split(".")[0] + ".sln"
-
-        if not os.path.exists(optimal_solution_filepath):
-            continue
-
-        records["instance"].append(filename.split(".")[0])
-        optimal_objective, optimal_encoding = read_optimal_solution(
-            optimal_solution_filepath
+    records = Parallel(n_jobs=-1, verbose=10, prefer="processes")(
+        record_heuristic_performance(
+            idx,
+            instance_name,
+            data_directory,
+            solution_directory,
         )
-        records["optimal_objective"].append(optimal_objective)
-        records["optimal_solution"].append(optimal_encoding)
+        for idx, instance_name in enumerate(valid_instance_names)
+    )
 
-        flow, distance = read_instance_data(data_directory + filename)
-        n = len(flow)
-
-        t0 = time.time()
-        # Constructive Heuristics (+ descent, deterministic) Experiments
-        elshafei_solution, elshafei_constructive_obj = elshafei_constructive(
-            distance, flow
-        )
-        records["elshafei_constructive_objective"].append(elshafei_constructive_obj)
-        records["elshafei_constructive_solution"].append(elshafei_solution)
-
-        elshafei_descent_solution, elshafei_descent_obj = local_search(
-            elshafei_solution,
-            flow,
-            distance,
-            get_total_swap_neighbourhood,
-            calculate_neighbourhood_optimal_solution,
-        )
-        t1 = time.time()
-        print(f"elshafei constructive local search took {t1-t0}")
-        records["elshafei_constructive_greedy_local_search_objective"].append(
-            elshafei_descent_obj
-        )
-        records["elshafei_constructive_greedy_local_search_solution"].append(
-            elshafei_descent_solution
-        )
-
-        t0 = time.time()
-        constructive_solution, constructive_obj = main_constructive(distance, flow)
-        records["constructive_objective"].append(constructive_obj)
-        records["constructive_solution"].append(constructive_solution)
-
-        constructive_descent_solution, constructive_descent_obj = local_search(
-            constructive_solution,
-            flow,
-            distance,
-            get_total_swap_neighbourhood,
-            calculate_neighbourhood_optimal_solution,
-        )
-        t1 = time.time()
-        print(f"main constructive local search took {t1-t0}")
-
-        records["constructive_greedy_local_search_objective"].append(
-            constructive_descent_obj
-        )
-        records["constructive_greedy_local_search_solution"].append(
-            constructive_descent_solution
-        )
-
-        # Dissimilarity Comparison Experiment (vs. Multistart)
-        for k, builder in MULTISTART_PARAMETERS:
-            t0 = time.time()
-            deterministic_starts = [np.random.permutation(n) for _ in range(k)]
-            multistart_solution, multistart_obj = multistart(
-                flow,
-                distance,
-                builder,
-                k,
-                calculate_neighbourhood_optimal_solution,
-                deterministic_start=deterministic_starts,
-            )
-            (
-                first_improvement_multistart_solution,
-                first_improvement_multistart_obj,
-            ) = multistart(
-                flow,
-                distance,
-                builder,
-                k,
-                calculate_neighbourhood_first_improvement,
-                deterministic_start=deterministic_starts,
-            )
-            dissimilarity_solution, dissimilarity_obj = disimilarity_local_search(
-                flow, distance, builder, k, deterministic_start=deterministic_starts
-            )
-            t1 = time.time()
-            print(
-                f"multistart and dissimilarity with k = {k}, builder = {builder} took {t1-t0}"
-            )
-
-            records[
-                f"{k}_multistart_{builder.__name__.replace('get_', '')}_optimal_neighbour_objective"
-            ].append(multistart_obj)
-            records[
-                f"{k}_multistart_{builder.__name__.replace('get_', '')}_optimal_neighbour_solution"
-            ].append(multistart_solution)
-
-            records[
-                f"{k}_multistart_{builder.__name__.replace('get_', '')}_first_improvement_objective"
-            ].append(first_improvement_multistart_obj)
-            records[
-                f"{k}_multistart_{builder.__name__.replace('get_', '')}_first_improvement_solution"
-            ].append(first_improvement_multistart_solution)
-
-            records[
-                f"{k}_dissimilarity_local_search_{builder.__name__.replace('get_', '')}_objective"
-            ].append(dissimilarity_obj)
-            records[
-                f"{k}_dissimilarity_local_search_{builder.__name__.replace('get_', '')}_solution"
-            ].append(dissimilarity_solution)
-
-        # GRASP (+ local search, simulated annealing) Experiments
-        t0 = time.time()
-        grasp_search_methods = ["local search", "simulated annealing"]
-        for search_method in grasp_search_methods:
-            _, grasp_obj = randomised_greedy_grasp(
-                n_iterations=25,
-                flow=flow,
-                distance=distance,
-                search_method=search_method,
-            )
-
-            records[f"grasp_{search_method.replace(' ', '_')}"].append(grasp_obj)
-
-        t1 = time.time()
-        print(f"GRASP took {t1-t0}")
-
-        # Genetic Algorithm Experiments
-        t0 = time.time()
-        _, genetic_algorithm_obj = genetic_algorithm(
-            n,
-            N_pop=100,
-            distance_data=distance,
-            flow_data=flow,
-            MaxIter=150,
-            p_crossover=0.8,
-            p_mutation=0.2,
-        )
-
-        records["genetic_algorithm"].append(genetic_algorithm_obj)
-        t1 = time.time()
-        print(f"Genetic took {t1-t0}")
-
-    pd.DataFrame(records).to_csv(output_filepath)
+    pd.DataFrame(records).to_csv(output_filepath, index=False)
 
 
 if __name__ == "__main__":
-    record_heuristic_performance()
+    record_heuristics_in_parallel()
