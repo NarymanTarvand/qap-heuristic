@@ -57,7 +57,7 @@ def local_search(
     if neighbourhood_builder == "total_swap":
         neighbourhood = list(combinations(range(n), 2))
     elif neighbourhood_builder == "adjacent_swap":
-        neighbourhood = [(i, (i + 1) % (n + 1)) for i in range(n + 1)]
+        neighbourhood = [(i, (i + 1) % (n)) for i in range(n)]
     else:
         raise Exception(
             "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"

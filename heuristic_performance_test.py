@@ -105,21 +105,21 @@ def record_heuristic_performance(
             "first_improvement",
             deterministic_start=deterministic_starts,
         )
-        _, dissimilarity_obj = disimilarity_local_search(
-            flow, distance, builder, k, deterministic_start=deterministic_starts
-        )
+        # _, dissimilarity_obj = disimilarity_local_search(
+        #     flow, distance, builder, k, deterministic_start=deterministic_starts
+        # )
 
         performance_record[
-            f"{k}_multistart_{builder.__name__.replace('get_', '')}_optimal_neighbour_objective"
+            f"{k}_multistart_{builder}_optimal_neighbour_objective"
         ] = multistart_obj
 
         performance_record[
-            f"{k}_multistart_{builder.__name__.replace('get_', '')}_first_improvement_objective"
+            f"{k}_multistart_{builder}_first_improvement_objective"
         ] = FI_multistart_obj
 
-        performance_record[
-            f"{k}_dissimilarity_local_search_{builder.__name__.replace('get_', '')}_objective"
-        ] = dissimilarity_obj
+        # performance_record[
+        #     f"{k}_dissimilarity_local_search_{builder}_objective"
+        # ] = dissimilarity_obj
 
     # GRASP (local search, simulated annealing as descent methods)
     grasp_search_methods = ["local search", "simulated annealing"]
@@ -167,7 +167,7 @@ def record_heuristics_in_parallel(
             data_directory,
             solution_directory,
         )
-        for idx, instance_name in enumerate(valid_instance_names[:3])
+        for idx, instance_name in enumerate(valid_instance_names[:10])
     )
 
     pd.DataFrame(records).to_csv(output_filepath, index=False)
