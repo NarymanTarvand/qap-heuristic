@@ -1,13 +1,17 @@
 from collections import defaultdict
+from itertools import product
+import time
+
 import numpy as np
+
 from global_calculations import (
     read_instance_data,
     read_optimal_solution,
 )
+
 from local_search_heuristics.local_search import local_search
 from local_search_heuristics.neighbours import get_total_swap_neighbourhood
 from metaheuristics.simulated_annealing import simmulated_annealing
-
 
 def greedy_randomised(
     flow: np.array,
@@ -83,45 +87,65 @@ def greedy_randomised(
 
     # while you have unassigned factories, assign them based on the smallest additional cost.
     while -1 in candidate_soln:
+        # print(len([i for i in candidate_soln if i == -1]))
+        
+        # cost_dict = defaultdict()
+        # for location_i in unassigned_locations:
+        #     for facility_k in unassigned_facilities:
+        #         potential_cost = 0
+        #         for location_j in assigned_locations:
+        #             for facility_l in assigned_facilities:
+        #                 potential_cost += (
+        #                     flow_matrix[location_i, location_j]
+        #                     * distance_matrix[facility_k, facility_l]
+        #                 )
+        #         cost_dict[(location_i, facility_k)] = potential_cost
+        # changed for below: vectorised approach
+        
         cost_dict = defaultdict()
-        for location_i in unassigned_locations:
-            for facility_k in unassigned_facilities:
-                potential_cost = 0
-                for location_j in assigned_locations:
-                    for facility_l in assigned_facilities:
-                        potential_cost += (
-                            flow_matrix[location_i, location_j]
-                            * distance_matrix[facility_k, facility_l]
-                        )
-                cost_dict[(location_i, facility_k)] = potential_cost
-
+        for location_i, facility_k in product(unassigned_locations, unassigned_facilities):
+            cost_dict[(location_i, facility_k)] = np.sum(
+                flow[location_i, assigned_locations][:, np.newaxis] 
+                * distance[facility_k, assigned_facilities][np.newaxis, :]
+            )
+                
         random_low_cost = np.random.choice(
             sorted(cost_dict.values())[: len(unassigned_locations) // 2 + 1]
         )
+        
         min_location, min_facility = list(cost_dict.keys())[
             list(cost_dict.values()).index(random_low_cost)
         ]
+        
         # for less random and more greedy, replace the above with:
         # min_location, min_facility = min(cost_dict, key=cost_dict.get)
 
-        assigned_locations.append(
-            unassigned_locations.pop(unassigned_locations.index(min_location))
-        )
-        assigned_facilities.append(
-            unassigned_facilities.pop(unassigned_facilities.index(min_facility))
-        )
+        # assigned_locations.append(
+        #     unassigned_locations.pop(unassigned_locations.index(min_location))
+        # )
+        # assigned_facilities.append(
+        #     unassigned_facilities.pop(unassigned_facilities.index(min_facility))
+        # )
+        # changed for below: just clearer to be honest
+        
+        unassigned_locations.remove(min_location)
+        assigned_locations.append(min_location)
+        
+        unassigned_facilities.remove(min_facility)
+        assigned_facilities.append(min_facility)
+        
         candidate_soln[min_location] = min_facility
 
     return candidate_soln
-
 
 def randomised_greedy_grasp(
     n_iterations: int, flow: np.array, distance: np.array, search_method: str
 ):
     current_objective = np.inf
-    for _ in range(n_iterations):
+    for i in range(n_iterations):
+        print(i)
+        t0 = time.time()
         candidate_solution = greedy_randomised(flow, distance)
-
         if search_method == "local search":
             local_descent_solution, local_descent_objective = local_search(
                 candidate_solution, flow, distance
@@ -138,7 +162,10 @@ def randomised_greedy_grasp(
         if local_descent_objective < current_objective:
             current_objective = local_descent_objective
             current_solution = local_descent_solution
-
+            
+        t1 = time.time()
+        print(f"{t1-t0}")
+        
     return current_solution, current_objective
 
 
