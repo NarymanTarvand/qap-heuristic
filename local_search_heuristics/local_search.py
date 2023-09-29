@@ -75,7 +75,15 @@ def local_search(
             )
             for swap_idx in neighbourhood
         ]
-        candidate_idx = np.argmin(objectives)
+        
+        if solution_selector == "best_improvement":
+            candidate_idx = np.argmin(objectives)
+        elif solution_selector == "first_improvement":
+            np.argmax(objectives < current_objective)
+        else:
+            raise Exception(
+                "local_search solution_selector must be one of 'best_improvement', 'first_improvement'"
+            )
 
         permutation = neighbourhood[candidate_idx]
         candidate_objective = objectives[candidate_idx]
@@ -195,7 +203,7 @@ if __name__ == "__main__":
     print(f"regular local search took {t1-t0}")
 
     t0 = time.time()
-    fast_optimal_local_search_solution, fast_objective = fast_local_search(
+    fast_optimal_local_search_solution, fast_objective = local_search(
         list(range(n)), flow, distance
     )
     t1 = time.time()
