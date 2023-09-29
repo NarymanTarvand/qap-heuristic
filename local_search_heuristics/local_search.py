@@ -2,16 +2,14 @@ import random
 from typing import Tuple, List, Callable
 
 import numpy as np
-import sys
 import time
-sys.path.append("..")
 
 from global_calculations import (
     calculate_objective,
     calculate_objective_incremental,
+    calculate_objective_incremental_vectorised,
     read_instance_data,
-    read_optimal_solution,
-    narys_test
+    read_optimal_solution
 )
 
 from local_search_heuristics.selection import *
@@ -28,7 +26,6 @@ def local_search(
 
     current_objective = calculate_objective(solution_encoding, flow, distance)
     n = len(flow)
-    print(current_objective)
     while True:
         neighbourhood = neighbourhood_builder(solution_encoding, n)
         (
@@ -37,7 +34,6 @@ def local_search(
         ) = solution_selector(neighbourhood, flow, distance, current_objective)
 
         if candidate_objective < current_objective:
-            print(candidate_objective)
             current_objective = candidate_objective
             solution_encoding = candidate_solution
         else:
@@ -57,19 +53,15 @@ def fast_local_search(
     current_objective = calculate_objective(solution_encoding, flow, distance)
     current_encoding = solution_encoding
     n = len(flow)
-    print(current_objective)
+    neighbourhood = list(combinations(range(n), 2))
     while True:
-        if neighbourhood_builder == "total_swap":
-            neighbourhood = list(combinations(range(n), 2))
-        
-        objectives = [narys_test(current_encoding, current_objective, flow, distance, swap_idx[0], swap_idx[1]) for swap_idx in neighbourhood]
+        objectives = [calculate_objective_incremental_vectorised(current_encoding, current_objective, flow, distance, swap_idx[0], swap_idx[1]) for swap_idx in neighbourhood]
         candidate_idx = np.argmin(objectives)
         
         permutation = neighbourhood[candidate_idx]
         candidate_objective = objectives[candidate_idx]
         
         if candidate_objective < current_objective:
-            print(candidate_objective)
             current_objective = candidate_objective
             swap(current_encoding, permutation[0], permutation[1])
         else:
@@ -167,10 +159,10 @@ def disimilarity_local_search(
 
 
 if __name__ == "__main__":
-    instance_filepath = "../data/qapdata/tai30b.dat"
+    instance_filepath = "../data/qapdata/lipa50a.dat"
     flow, distance = read_instance_data(instance_filepath)
     n = len(flow)
-    best_obj, _ = read_optimal_solution("../data/qapsoln/tai30b.sln")
+    best_obj, _ = read_optimal_solution("../data/qapsoln/lipa50a.sln")
 
     t0=time.time()
     optimal_local_search_solution, objective = local_search(list(range(n)), flow, distance, get_total_swap_neighbourhood, calculate_neighbourhood_optimal_solution)
