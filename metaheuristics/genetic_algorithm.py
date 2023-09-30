@@ -356,7 +356,8 @@ def selection(X_pop, pop_size):
     # Invert fitness value
     # Minimisation problem, so small fitness is best
     # Want objective(fitness) that is small to be more likely to be chosen
-    inverted_fitness = 1 / extracted_fitness
+    #Issue: If all extracted_fitenss are zero add a small term to not divide by zero
+    inverted_fitness = 1 / (extracted_fitness+0.001) 
 
     # current_fitness / total_fitness
     prob_list = inverted_fitness / inverted_fitness.sum()
