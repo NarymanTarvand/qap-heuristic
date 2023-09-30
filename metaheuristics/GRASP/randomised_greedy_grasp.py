@@ -143,8 +143,6 @@ def randomised_greedy_grasp(
 ):
     current_objective = np.inf
     for i in range(n_iterations):
-        print(i)
-        t0 = time.time()
         candidate_solution = greedy_randomised(flow, distance)
         if search_method == "local search":
             local_descent_solution, local_descent_objective = local_search(
@@ -162,9 +160,6 @@ def randomised_greedy_grasp(
         if local_descent_objective < current_objective:
             current_objective = local_descent_objective
             current_solution = local_descent_solution
-            
-        t1 = time.time()
-        print(f"{t1-t0}")
         
     return current_solution, current_objective
 
