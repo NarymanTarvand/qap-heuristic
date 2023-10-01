@@ -40,7 +40,7 @@ MULTISTART_PARAMETERS = [
 ]
 
 # TODO: add time recording to instances.
-@delayed
+# @delayed
 def record_heuristic_performance(
     idx: int,
     instance_name: str,
