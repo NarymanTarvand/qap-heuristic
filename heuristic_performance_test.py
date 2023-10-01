@@ -154,21 +154,82 @@ def record_heuristics_in_parallel(
     output_filepath: str = "data/heuristic_performance.csv",
 ) -> None:
 
+    # valid_instance_names = [
+    #     filename
+    #     for filename in os.listdir(data_directory)
+    #     if os.path.exists(solution_directory + filename.split(".")[0] + ".sln")
+    # ]
+
+    # Harry uncommend this:
+    # valid_instance_names = ['nug16b.dat', 'tai35b.dat', 'chr22a.dat', 'esc16h.dat', 'lipa40a.dat', 'chr18a.dat', 'lipa60b.dat', 'esc16i.dat', 'tai15a.dat', 'nug16a.dat', 'tai35a.dat', 'chr22b.dat', 'lipa40b.dat', 'chr18b.dat', 'tho30.dat', 'lipa60a.dat', 'esc16j.dat', 'tai15b.dat', 'rou20.dat', 'lipa20a.dat', 'chr15a.dat', 'tai80b.dat', 'lipa20b.dat', 'chr15b.dat', 'tai150b.dat', 'chr15c.dat', 'tai80a.dat', 'lipa50b.dat', 'tai100a.dat', 'tai25a.dat', 'chr12a.dat', 'kra30a.dat', 'nug12.dat', 'had20.dat', 'lipa70a.dat', 'lipa50a.dat', 'tai100b.dat', 'chr12c.dat', 'tai25b.dat', 'sko56.dat', 'sko42.dat', 'kra30b.dat']
+
+    # Owen uncomment this:
+    # valid_instance_names = ['chr12b.dat', 'scr20.dat', 'sko81.dat', 'lipa70b.dat', 'tai64c.dat', 'tai12a.dat', 'nug15.dat', 'esc32g.dat', 'lipa30b.dat', 'sko90.dat', 'nug14.dat', 'nug28.dat', 'tho150.dat', 'chr25a.dat', 'tai12b.dat', 'had18.dat', 'tho40.dat', 'lipa30a.dat', 'esc32e.dat', 'nug17.dat', 'bur26h.dat', 'ste36a.dat', 'bur26e.dat', 'sko100b.dat', 'had14.dat', 'tai50b.dat', 'sko49.dat', 'nug27.dat', 'sko100c.dat', 'bur26d.dat', 'bur26f.dat', 'ste36b.dat', 'sko100a.dat', 'nug25.dat', 'tai50a.dat', 'scr15.dat', 'kra32.dat', 'nug18.dat', 'nug30.dat', 'nug24.dat', 'had16.dat', 'ste36c.dat']
+
+    # Naryman uncomment this:
     valid_instance_names = [
-        filename
-        for filename in os.listdir(data_directory)
-        if os.path.exists(solution_directory + filename.split(".")[0] + ".sln")
+        "bur26g.dat",
+        "tai30b.dat",
+        "bur26c.dat",
+        "sko100d.dat",
+        "had12.dat",
+        "nug20.dat",
+        "sko72.dat",
+        "nug21.dat",
+        "lipa90a.dat",
+        "sko100e.dat",
+        "bur26b.dat",
+        "tai30a.dat",
+        "scr12.dat",
+        "sko64.dat",
+        "nug22.dat",
+        "esc128.dat",
+        "lipa90b.dat",
+        "sko100f.dat",
+        "bur26a.dat",
+        "tai40a.dat",
+        "tai17a.dat",
+        "esc16a.dat",
+        "els19.dat",
+        "tai256c.dat",
+        "tai60b.dat",
+        "chr20a.dat",
+        "wil50.dat",
+        "tai40b.dat",
+        "chr20c.dat",
+        "esc16b.dat",
+        "esc16c.dat",
+        "chr20b.dat",
+        "rou15.dat",
+        "tai60a.dat",
+        "wil100.dat",
+        "esc16g.dat",
+        "tai20a.dat",
+        "lipa80b.dat",
+        "esc16f.dat",
+        "rou12.dat",
+        "esc16d.dat",
+        "tai20b.dat",
+        "lipa80a.dat",
+        "esc16e.dat",
     ]
 
-    records = Parallel(n_jobs=-1, verbose=10, prefer="processes")(
+    records = [
         record_heuristic_performance(
-            idx,
-            instance_name,
-            data_directory,
-            solution_directory,
+            idx, instance_name, data_directory, solution_directory
         )
         for idx, instance_name in enumerate(valid_instance_names)
-    )
+    ]
+
+    # records = Parallel(n_jobs=-1, verbose=11, prefer="processes")(
+    #     record_heuristic_performance(
+    #         idx,
+    #         instance_name,
+    #         data_directory,
+    #         solution_directory,
+    #     )
+    #     for idx, instance_name in enumerate(valid_instance_names[20:40])
+    # )
 
     pd.DataFrame(records).to_csv(output_filepath, index=False)
 
