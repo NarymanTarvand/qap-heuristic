@@ -1,5 +1,5 @@
-from itertools import combinations
-from typing import Callable
+import random
+from typing import Tuple, List, Callable
 
 import numpy as np
 
@@ -9,42 +9,118 @@ from global_calculations import (
     read_optimal_solution,
 )
 
-from selection import *
-from neighbours import *
+from local_search_heuristics.selection import *
+from local_search_heuristics.neighbours import *
 
-def greedy_local_search(
-    solution_encoding: list, flow: np.array, distance: np.array,
-    neighbourhood_builder: Callable
-) -> list:
+
+def local_search(
+    solution_encoding: list,
+    flow: np.array,
+    distance: np.array,
+    neighbourhood_builder: Callable = get_total_swap_neighbourhood,
+    solution_selector: Callable = calculate_neighbourhood_optimal_solution,
+) -> Tuple[List[int], float]:
 
     current_objective = calculate_objective(solution_encoding, flow, distance)
+    n = len(flow)
 
     while True:
         neighbourhood = neighbourhood_builder(solution_encoding, n)
         (
             candidate_solution,
             candidate_objective,
-        ) = calculate_neighbourhood_optimal_solution(neighbourhood, flow, distance)
+        ) = solution_selector(neighbourhood, flow, distance, current_objective)
 
-        if candidate_objective < current_objective:
+        if candidate_objective <= current_objective:
             current_objective = candidate_objective
             solution_encoding = candidate_solution
         else:
             break
-        
+
     return solution_encoding, current_objective
 
 
+def multistart(
+    flow: np.array,
+    distance: np.array,
+    neighbourhood_builder: Callable,
+    k: int,
+) -> Tuple[List[int], float]:
+    
+    # TODO: refactor for readability
+    multistart_solutions = []
+    multistart_costs = []
+
+    for _ in range(k):
+        solution_encoding = [i for i in range(n)]
+        random.shuffle(solution_encoding)
+
+        solution_encoding, solution_cost = local_search(
+            solution_encoding, flow, distance, neighbourhood_builder
+        )
+
+        multistart_solutions.append(solution_encoding)
+        multistart_costs.append(solution_cost)
+
+    multistart_cost = np.min(multistart_costs)
+    multistart_solution = multistart_costs[np.argmin(multistart_costs)]
+
+    return multistart_solution, multistart_cost
+
+def disimilarity_local_search(
+    flow: np.array,
+    distance: np.array,
+    neighbourhood_builder: Callable,
+    k: int,
+) -> Tuple[List[int], float]:
+    
+    n = len(flow)
+    local_optima = []
+    optima_costs = []
+
+    for _ in range(k):
+        # initial random feasible solution
+        solution_encoding = [i for i in range(n)]
+        random.shuffle(solution_encoding)
+        current_objective = calculate_objective(solution_encoding, flow, distance)
+
+        while True:
+            neighbourhood = neighbourhood_builder(solution_encoding, n)
+            (
+                candidate_solution,
+                candidate_objective,
+            ) = calculate_neighbourhood_improving_similar(
+                neighbourhood, flow, distance, local_optima, current_objective
+                )
+
+            if candidate_objective <= current_objective:
+                current_objective = candidate_objective
+                solution_encoding = candidate_solution
+            else:
+                break
+            
+        local_optima.append(solution_encoding)
+        optima_costs.append(current_objective)
+    
+    multistart_disimilarity_cost = np.min(optima_costs)
+    multistart_disimilarity_solution = local_optima[np.argmin(optima_costs)]
+    
+    return multistart_disimilarity_solution, multistart_disimilarity_cost
+
+
 if __name__ == "__main__":
-    instance_filepath = "data/qapdata/tai30b.dat"
+    instance_filepath = "../data/qapdata/tai30b.dat"
     flow, distance = read_instance_data(instance_filepath)
     n = len(flow)
-    solution_encoding = [i for i in range(n)]
+    k = 2
 
-    read_optimal_solution("data/qapsoln/tai30b.sln")
-    optimal_local_search_solution, objective = greedy_local_search(
-        solution_encoding, flow, distance, get_adjacent_swap_neighbourhood
+    best_obj, _ = read_optimal_solution("../data/qapsoln/tai30b.sln")
+    
+    optimal_local_search_solution, objective = disimilarity_local_search(
+        flow, distance, get_total_swap_neighbourhood, k
     )
+    
     print(
         f"Optimal solution, {optimal_local_search_solution} has objective {objective}"
     )
+    print(f"solution: {best_obj}")
