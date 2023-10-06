@@ -61,3 +61,14 @@ def calculate_objective_incremental(current_encoding: np.array, n: int,
             cost += distance[current_encoding[i]][current_encoding[swap_index[0]]]*flow[i][swap_index[1]] 
     
     return cost
+
+def calculate_objective_vectorised(current_encoding, flow, distance, a, b):
+    # swap indices
+    current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]
+    
+    new_cost = np.sum(flow * distance[current_encoding][:, current_encoding])
+    
+    current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]
+    
+    # Compute and return the delta
+    return new_cost
