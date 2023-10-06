@@ -379,7 +379,7 @@ def selection(X_pop, pop_size):
 
 
 def genetic_algorithm(
-    n, N_pop, distance_data, flow_data, MaxIter, p_crossover, p_mutation
+    n, N_pop, distance_data, flow_data, MaxIter, p_crossover, p_mutation, timed = False
 ):
     """
     The Main function to call to run the Genetic Algorithm. Returns the optimal solution
@@ -394,10 +394,13 @@ def genetic_algorithm(
     Returns:
         X_opt (list): Final Solution instance
     """
-
+    
     # ASSUMPTION
     # n >> 1
     # N_pop >> 1
+
+    t0=time.time() #Start initial timer
+    
     initial_population = create_population(N_pop, n)
 
     current_solution = []
@@ -467,7 +470,10 @@ def genetic_algorithm(
         )  # Returns the minimum fitness(cost) of the entire population
 
         epoch = epoch + 1
+        if timed and (time.time() - t0)>60:
+            return [best_solution,best_objective]
 
+    
     return best_solution, best_objective
 
 
