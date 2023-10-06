@@ -27,7 +27,10 @@ def get_matrix_asymmetry(data_matrix: np.ndarray) -> float:
 
 def get_matrix_dominance(data_matrix: np.ndarray) -> float:
     flat_matrix = data_matrix.flatten()
-    return np.std(flat_matrix) / np.mean(flat_matrix)
+    if np.mean(flat_matrix) == 0:
+        return np.std(flat_matrix)
+    else:
+        return np.std(flat_matrix) / np.mean(flat_matrix)
 
 
 def get_matrix_max(data_matrix: np.ndarray) -> float:
@@ -47,7 +50,7 @@ def get_matrix_median(data_matrix: np.ndarray) -> float:
 
 
 def get_instance_features(data: pd.DataFrame, data_fp: str):
-    yep = [
+    features = [
         get_problem_size,
         get_matrix_sparsity,
         get_matrix_asymmetry,
@@ -57,12 +60,43 @@ def get_instance_features(data: pd.DataFrame, data_fp: str):
         get_matrix_mean,
         get_matrix_median,
     ]
-    d = {}
+    feature_names = [
+        (
+            "flow_" + feature.__name__.split("_")[-1],
+            "distance_" + feature.__name__.split("_")[-1],
+        )
+        for feature in features
+    ]
+    feature_values = {}
     for instance in data.index:
 
         instance_fp = data_fp + instance + ".dat"
         flow, distance = read_instance_data(instance_fp)
-        yep2 = product(yep, [flow, distance])
-        d[instance] = [i(j) for i, j in yep2]
+        yep2 = product(features, [flow, distance])
+        feature_values[instance] = [i(j) for i, j in yep2]
 
-    return d
+    column_names = [
+        "drop",
+        "problem_size",
+        "flow_sparsity",
+        "distance_sparsity",
+        "flow_asymmetry",
+        "distance_asymmetry",
+        "flow_dominance",
+        "distance_dominance",
+        "flow_max",
+        "distance_max",
+        "flow_min",
+        "distance_min",
+        "flow_mean",
+        "distance_mean",
+        "flow_median",
+        "distance_median",
+    ]
+    feature_df = pd.DataFrame.from_dict(feature_values, orient="index")
+    feature_df = feature_df.rename(
+        columns={i: column_names[i] for i in feature_df.columns}
+    )
+    feature_df = feature_df.loc[:, feature_df.columns != "drop"]
+
+    return feature_df
