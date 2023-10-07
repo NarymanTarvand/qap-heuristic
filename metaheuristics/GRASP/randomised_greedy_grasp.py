@@ -88,20 +88,6 @@ def greedy_randomised(
 
     # while you have unassigned factories, assign them based on the smallest additional cost.
     while -1 in candidate_soln:
-        # print(len([i for i in candidate_soln if i == -1]))
-
-        # cost_dict = defaultdict()
-        # for location_i in unassigned_locations:
-        #     for facility_k in unassigned_facilities:
-        #         potential_cost = 0
-        #         for location_j in assigned_locations:
-        #             for facility_l in assigned_facilities:
-        #                 potential_cost += (
-        #                     flow_matrix[location_i, location_j]
-        #                     * distance_matrix[facility_k, facility_l]
-        #                 )
-        #         cost_dict[(location_i, facility_k)] = potential_cost
-        # changed for below: vectorised approach
 
         cost_dict = defaultdict()
         for location_i, facility_k in product(
@@ -119,17 +105,6 @@ def greedy_randomised(
         min_location, min_facility = list(cost_dict.keys())[
             list(cost_dict.values()).index(random_low_cost)
         ]
-
-        # for less random and more greedy, replace the above with:
-        # min_location, min_facility = min(cost_dict, key=cost_dict.get)
-
-        # assigned_locations.append(
-        #     unassigned_locations.pop(unassigned_locations.index(min_location))
-        # )
-        # assigned_facilities.append(
-        #     unassigned_facilities.pop(unassigned_facilities.index(min_facility))
-        # )
-        # changed for below: just clearer to be honest
 
         unassigned_locations.remove(min_location)
         assigned_locations.append(min_location)
