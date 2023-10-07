@@ -1,6 +1,7 @@
 import numpy as np
 from decimal import Decimal
 
+
 def read_instance_data(instance_fp: str) -> tuple[np.array, np.array]:
     with open(instance_fp) as f:
         file_it = iter([int(elem) for elem in f.read().split()])
@@ -38,44 +39,34 @@ def calculate_objective(
     return cost
 
 
-# def narys_test(current_encoding, current_objective, flow, distance, swap_idx_1, swap_idx_2):
-#     cost = current_objective.copy()
-#     pre_swap_cost_component = 0
-#     post_swap_cost_component = 0
-#     for object_i, location_i in enumerate(current_encoding):
-#         pre_swap_cost_component += flow[object_i, swap_idx_1] * distance[location_i, current_encoding[swap_idx_1]]
-#         pre_swap_cost_component += flow[object_i, swap_idx_2] * distance[location_i, current_encoding[swap_idx_2]]
-
-#         post_swap_cost_component += flow[object_i, swap_idx_1] * distance[location_i, current_encoding[swap_idx_2]]
-#         post_swap_cost_component += flow[object_i, swap_idx_2] * distance[location_i, current_encoding[swap_idx_1]]
-
-
-#     return cost + post_swap_cost_component - pre_swapz_cost_component
-
 def calculate_objective_incremental(p, n, curr_obj, flow, distance, a, b):
     """Compute the change in the objective function after swapping facilities a and b in permutation p."""
     delta = 0
 
     for k in range(n):
         if k != a and k != b:
-            delta += flow[a][k] * (distance[p[b]][p[k]] - distance[p[a]][p[k]]) + \
-                     flow[k][a] * (distance[p[k]][p[b]] - distance[p[k]][p[a]]) + \
-                     flow[b][k] * (distance[p[a]][p[k]] - distance[p[b]][p[k]]) + \
-                     flow[k][b] * (distance[p[k]][p[a]] - distance[p[k]][p[b]])
+            delta += (
+                flow[a][k] * (distance[p[b]][p[k]] - distance[p[a]][p[k]])
+                + flow[k][a] * (distance[p[k]][p[b]] - distance[p[k]][p[a]])
+                + flow[b][k] * (distance[p[a]][p[k]] - distance[p[b]][p[k]])
+                + flow[k][b] * (distance[p[k]][p[a]] - distance[p[k]][p[b]])
+            )
 
     # Account for the direct interaction between the swapped facilities
-    delta += flow[a][b] * (distance[p[b]][p[a]] - distance[p[a]][p[b]]) + \
-             flow[b][a] * (distance[p[a]][p[b]] - distance[p[b]][p[a]])
+    delta += flow[a][b] * (distance[p[b]][p[a]] - distance[p[a]][p[b]]) + flow[b][a] * (
+        distance[p[a]][p[b]] - distance[p[b]][p[a]]
+    )
 
     return curr_obj + delta
+
 
 def calculate_objective_vectorised(current_encoding, flow, distance, a, b):
     # swap indices
     current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]
-    
+
     new_cost = np.sum(flow * distance[current_encoding][:, current_encoding])
-    
+
     current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]
-    
+
     # Compute and return the delta
     return new_cost
