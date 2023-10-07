@@ -15,38 +15,13 @@ from local_search_heuristics.selection import *
 from local_search_heuristics.neighbours import *
 
 
-# def slow_local_search(
-#     solution_encoding: list,
-#     flow: np.array,
-#     distance: np.array,
-#     neighbourhood_builder: Callable = get_total_swap_neighbourhood,
-#     solution_selector: Callable = calculate_neighbourhood_optimal_solution,
-# ) -> Tuple[List[int], float]:
-
-#     current_objective = calculate_objective(solution_encoding, flow, distance)
-#     n = len(flow)
-#     while True:
-#         neighbourhood = neighbourhood_builder(solution_encoding, n)
-#         (
-#             candidate_solution,
-#             candidate_objective,
-#         ) = solution_selector(neighbourhood, flow, distance, current_objective)
-
-#         if candidate_objective < current_objective:
-#             current_objective = candidate_objective
-#             solution_encoding = candidate_solution
-#         else:
-#             break
-
-#     return solution_encoding, current_objective
-
-
 def local_search(
     solution_encoding: list,
     flow: np.array,
     distance: np.array,
     neighbourhood_builder: str = "total_swap",
     solution_selector: str = "best_improvement",
+    restrict_time: bool = False,
 ) -> Tuple[List[int], float]:
 
     current_objective = calculate_objective(solution_encoding, flow, distance)
@@ -62,6 +37,7 @@ def local_search(
             "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
         )
 
+    t0 = time.time()
     while True:
         objectives = [
             calculate_objective_vectorised(
@@ -92,6 +68,8 @@ def local_search(
         else:
             break
 
+        if restrict_time and (time.time() - t0 > 60):
+            return current_encoding, current_objective
     return current_encoding, current_objective
 
 
@@ -102,6 +80,7 @@ def multistart(
     k: int,
     solution_selector: str,
     deterministic_start: list = [],
+    restrict_time: bool = False,
 ) -> Tuple[List[int], float]:
 
     # TODO: refactor for readability
@@ -114,6 +93,7 @@ def multistart(
         given_start = True
         assert len(deterministic_start) == k
 
+    t0 = time.time()
     for j in range(k):
         if given_start:
             solution_encoding = deterministic_start[j]
@@ -129,6 +109,9 @@ def multistart(
     multistart_cost = np.min(multistart_costs)
     multistart_solution = multistart_costs[np.argmin(multistart_costs)]
 
+    if restrict_time and (time.time() - t0 > 60):
+        return multistart_solution, multistart_cost
+
     return multistart_solution, multistart_cost
 
 
@@ -138,6 +121,7 @@ def disimilarity_local_search(
     neighbourhood_builder: str,
     k: int,
     deterministic_start: list = [],
+    restrict_time: bool = False,
 ) -> Tuple[List[int], float]:
 
     n = len(flow)
@@ -157,7 +141,8 @@ def disimilarity_local_search(
         raise Exception(
             "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
         )
-    
+
+    t0 = time.time()
     for j in range(k):
         # initial random feasible solution or given deterministic
         if given_start:
@@ -165,7 +150,7 @@ def disimilarity_local_search(
         else:
             solution_encoding = [i for i in range(n)]
             random.shuffle(solution_encoding)
-            
+
         current_objective = calculate_objective(solution_encoding, flow, distance)
 
         while True:
@@ -173,7 +158,12 @@ def disimilarity_local_search(
                 candidate_solution,
                 candidate_objective,
             ) = calculate_neighbourhood_improving_similar(
-                neighbourhood, flow, distance, local_optima, solution_encoding, current_objective
+                neighbourhood,
+                flow,
+                distance,
+                local_optima,
+                solution_encoding,
+                current_objective,
             )
 
             if candidate_objective < current_objective:
@@ -187,6 +177,8 @@ def disimilarity_local_search(
 
     multistart_disimilarity_cost = np.min(optima_costs)
     multistart_disimilarity_solution = local_optima[np.argmin(optima_costs)]
+    if restrict_time and (time.time() - t0 > 60):
+        return multistart_disimilarity_solution, multistart_disimilarity_cost
 
     return multistart_disimilarity_solution, multistart_disimilarity_cost
 
@@ -203,7 +195,7 @@ if __name__ == "__main__":
     )
     t1 = time.time()
     print(f"fast local search took {t1-t0}")
-    
+
     print(
         f"FAST Optimal solution, {fast_optimal_local_search_solution} has objective {fast_objective}"
     )

@@ -356,8 +356,8 @@ def selection(X_pop, pop_size):
     # Invert fitness value
     # Minimisation problem, so small fitness is best
     # Want objective(fitness) that is small to be more likely to be chosen
-    #Issue: If all extracted_fitenss are zero add a small term to not divide by zero
-    inverted_fitness = 1 / (extracted_fitness+0.001) 
+    # Issue: If all extracted_fitenss are zero add a small term to not divide by zero
+    inverted_fitness = 1 / (extracted_fitness + 0.001)
 
     # current_fitness / total_fitness
     prob_list = inverted_fitness / inverted_fitness.sum()
@@ -379,7 +379,14 @@ def selection(X_pop, pop_size):
 
 
 def genetic_algorithm(
-    n, N_pop, distance_data, flow_data, MaxIter, p_crossover, p_mutation, timed = False
+    n,
+    N_pop,
+    distance_data,
+    flow_data,
+    MaxIter,
+    p_crossover,
+    p_mutation,
+    restrict_time: bool = True,
 ):
     """
     The Main function to call to run the Genetic Algorithm. Returns the optimal solution
@@ -394,13 +401,13 @@ def genetic_algorithm(
     Returns:
         X_opt (list): Final Solution instance
     """
-    
+
     # ASSUMPTION
     # n >> 1
     # N_pop >> 1
 
-    t0=time.time() #Start initial timer
-    
+    t0 = time.time()  # Start initial timer
+
     initial_population = create_population(N_pop, n)
 
     current_solution = []
@@ -459,6 +466,9 @@ def genetic_algorithm(
                     current_generation.append([offspring1[0], offspring1[1]])
                     current_generation.append([offspring2[0], offspring2[1]])
 
+        if restrict_time and (time.time() - t0 > 60):
+            return best_solution, best_objective
+
         current_population = current_generation  # Store the new generation into population to evaluate fitness
         current_generation = []  # Sets new generation to be empty
 
@@ -470,10 +480,7 @@ def genetic_algorithm(
         )  # Returns the minimum fitness(cost) of the entire population
 
         epoch = epoch + 1
-        if timed and (time.time() - t0)>60:
-            return [best_solution,best_objective]
 
-    
     return best_solution, best_objective
 
 
