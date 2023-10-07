@@ -39,27 +39,6 @@ def calculate_objective(
     return cost
 
 
-def calculate_objective_incremental(p, n, curr_obj, flow, distance, a, b):
-    """Compute the change in the objective function after swapping facilities a and b in permutation p."""
-    delta = 0
-
-    for k in range(n):
-        if k != a and k != b:
-            delta += (
-                flow[a][k] * (distance[p[b]][p[k]] - distance[p[a]][p[k]])
-                + flow[k][a] * (distance[p[k]][p[b]] - distance[p[k]][p[a]])
-                + flow[b][k] * (distance[p[a]][p[k]] - distance[p[b]][p[k]])
-                + flow[k][b] * (distance[p[k]][p[a]] - distance[p[k]][p[b]])
-            )
-
-    # Account for the direct interaction between the swapped facilities
-    delta += flow[a][b] * (distance[p[b]][p[a]] - distance[p[a]][p[b]]) + flow[b][a] * (
-        distance[p[a]][p[b]] - distance[p[b]][p[a]]
-    )
-
-    return curr_obj + delta
-
-
 def calculate_objective_vectorised(current_encoding, flow, distance, a, b):
     # swap indices
     current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]

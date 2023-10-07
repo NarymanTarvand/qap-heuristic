@@ -5,7 +5,6 @@ import time
 
 from global_calculations import (
     calculate_objective,
-    calculate_objective_incremental,
     calculate_objective_vectorised,
     read_instance_data,
     read_optimal_solution,
