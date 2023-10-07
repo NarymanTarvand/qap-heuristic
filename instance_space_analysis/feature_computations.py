@@ -56,7 +56,7 @@ def get_instance_features(data: pd.DataFrame, data_fp: str):
         get_matrix_asymmetry,
         get_matrix_dominance,
         get_matrix_max,
-        get_matrix_min,
+        # get_matrix_min,
         get_matrix_mean,
         get_matrix_median,
     ]
