@@ -4,7 +4,8 @@ import random  # for drawing random bits and setting seed
 import sys  # Store the biggest number
 import time
 
-from global_calculations import calculate_objective, read_instance_data
+#calculate_objective_vectorised(current_encoding, flow, distance, a, b)
+from global_calculations import calculate_objective_vectorised, read_instance_data
 
 
 def create_population(N_pop, n):
@@ -48,8 +49,8 @@ def fitness(distance_data, flow_data, X_pop):
         X_i = np.array(
             X_pop[i][0]
         )  # Store the solution instance for a solution in the population. If the form [1,5,4,2,3]
-
-        cost = calculate_objective(X_i, flow_data, distance_data)  # Computes Cost
+        
+        cost = calculate_objective_vectorised(X_i, flow_data, distance_data,0,0)  # Computes Cost
 
         X_pop[i][1] = cost  # Assign updated cost for the solution instance
 

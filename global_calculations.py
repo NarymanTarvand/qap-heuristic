@@ -46,6 +46,5 @@ def calculate_objective_vectorised(current_encoding, flow, distance, a, b):
     new_cost = np.sum(flow * distance[current_encoding][:, current_encoding])
 
     current_encoding[a], current_encoding[b] = current_encoding[b], current_encoding[a]
-
     # Compute and return the delta
     return new_cost
