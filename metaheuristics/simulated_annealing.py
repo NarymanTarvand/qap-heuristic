@@ -19,7 +19,7 @@ def simmulated_annealing(
     current_solution: list,
     flow: np.array,
     distance: np.array,
-    n_iter: int = 1000,
+    n_iter: int = 500,
     temp: int = 100,
     alpha: float = 0.99,
 ):
