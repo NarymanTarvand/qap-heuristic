@@ -2,6 +2,8 @@ from itertools import product
 import numpy as np
 from collections import defaultdict
 
+from global_calculations import calculate_objective
+
 def delta_objective(new_facility: int, new_location : int,
                     new_encoding: np.array, 
                     distance: np.array, flow: np.array)  -> int:
@@ -16,7 +18,7 @@ def delta_objective(new_facility: int, new_location : int,
                   np.dot(distance[total_locations, :][:, [new_location]].reshape((1,-1))[0], 
                   flow[total_facilities, :][:, [new_facility]].reshape((1,-1))[0])
 
-def greedy_constructive(distance: np.array, flow: np.array) -> np.aray:
+def greedy_constructive(distance: np.array, flow: np.array) -> np.array:
     """ iteratively fills a solution vector, minimising change in 
         objective function at each step """
 
@@ -55,7 +57,9 @@ def greedy_constructive(distance: np.array, flow: np.array) -> np.aray:
 
 def main_constructive(distance: np.array, flow: np.array) -> np.array:
     """ main constructive heuristic """
-
+    distance_copy = distance.copy()
+    flow_copy = flow.copy()
+    
     # heuristic such that "flow" contain larger values
     if np.sum(distance) > np.sum(flow):
         flow, distance = distance, flow
@@ -81,4 +85,4 @@ def main_constructive(distance: np.array, flow: np.array) -> np.array:
     for i in range(n):
         solution[L_tie[i]] = R[i]
         
-    return solution
+    return solution, calculate_objective(solution, flow_copy, distance_copy)
