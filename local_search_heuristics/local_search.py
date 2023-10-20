@@ -23,6 +23,7 @@ def local_search(
     neighbourhood_builder: str = "total_swap",
     solution_selector: str = "best_improvement",
     restrict_time: bool = False,
+    logging: bool = False
 ) -> Tuple[List[int], float]:
     current_objective = calculate_objective(solution_encoding, flow, distance)
     current_encoding = solution_encoding
@@ -36,7 +37,11 @@ def local_search(
         raise Exception(
             "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
         )
-
+    
+    if logging:
+        N_iter = 0
+        iter_sols = list()
+    
     t0 = time.time()
     while True:
         objectives = [
@@ -65,9 +70,16 @@ def local_search(
         if candidate_objective < current_objective:
             current_objective = candidate_objective
             swap(current_encoding, permutation[0], permutation[1])
+            if logging:
+                print(N_iter)
+                N_iter += 1
+                iter_sols.append(current_objective)
         else:
             break
-
+        
+        if logging and N_iter > 250:
+            return iter_sols
+        
         if restrict_time and (time.time() - t0 > 60):
             return current_encoding, current_objective
     return current_encoding, current_objective
