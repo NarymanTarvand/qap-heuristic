@@ -1,6 +1,7 @@
 from collections import defaultdict
 from itertools import product
 import time
+import logging
 
 import numpy as np
 
@@ -12,6 +13,7 @@ from global_calculations import (
 from local_search_heuristics.local_search import local_search
 from local_search_heuristics.neighbours import get_total_swap_neighbourhood
 from metaheuristics.simulated_annealing import simmulated_annealing
+import sys
 
 
 def greedy_randomised(
@@ -27,8 +29,6 @@ def greedy_randomised(
     For the rest of the factories, consider the additional cost of that assignment to a possible location.
     Randomly select from the lowest cost options
     """
-    # TODO: refactor, bit ugly
-    # TODO: doc string might be gibberish
     n = len(flow)
     assigned_facilities = []
     assigned_locations = []
@@ -88,7 +88,6 @@ def greedy_randomised(
 
     # while you have unassigned factories, assign them based on the smallest additional cost.
     while -1 in candidate_soln:
-
         cost_dict = defaultdict()
         for location_i, facility_k in product(
             unassigned_locations, unassigned_facilities
@@ -124,6 +123,11 @@ def randomised_greedy_grasp(
     search_method: str,
     restrict_time: bool = True,
 ):
+    """
+    Randomised Greedy GRASP heuristic for Quadratic Assignment Problem.
+    First generate a greedy randomised solution.
+    Then use either local search or simulated annealing to improve the solution.
+    """
     current_objective = np.inf
 
     t0 = time.time()
@@ -153,21 +157,32 @@ def randomised_greedy_grasp(
 
 
 if __name__ == "__main__":
-    instance_filepath = "data/qapdata/tai64c.dat"
-    optimal_solution_filepath = "data/qapsoln/tai64c.sln"
+    if len(sys.argv) != 4:
+        logging.error("Error: expected 3 arg")
+        logging.warning(
+            "Usage: python -m metaheuristics.GRASP.randomised_greedy_grasp <instance_name> <restricted_time> <search_method>"
+        )
+        sys.exit(1)
+    instance_name = sys.argv[1]
+    restricted_time = sys.argv[2]
+    search_method = sys.argv[3]
+
+    instance_filepath = f"data/qapdata/{instance_name}.dat"
+    optimal_solution_filepath = f"data/qapsoln/{instance_name}.sln"
     flow, distance = read_instance_data(instance_filepath)
     optimal_objective, optimal_encoding = read_optimal_solution(
         optimal_solution_filepath
     )
-
-    greedy_randomised(flow, distance)
-
+    start_time = time.time()
     optimal_randomised_greedy_grasp_solution, objective = randomised_greedy_grasp(
         n_iterations=10,
         flow=flow,
         distance=distance,
-        search_method="simulated annealing",  # or "simulated annealing"
+        search_method=search_method,
+        restrict_time=restricted_time,
     )
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     print(
         f"Heuristic solution, {optimal_randomised_greedy_grasp_solution} has objective {objective}"
     )

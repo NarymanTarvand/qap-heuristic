@@ -1,5 +1,7 @@
+import logging
 import random
 from typing import Tuple, List, Callable
+
 import numpy as np
 import time
 
@@ -22,7 +24,6 @@ def local_search(
     solution_selector: str = "best_improvement",
     restrict_time: bool = False,
 ) -> Tuple[List[int], float]:
-
     current_objective = calculate_objective(solution_encoding, flow, distance)
     current_encoding = solution_encoding
     n = len(flow)
@@ -72,130 +73,28 @@ def local_search(
     return current_encoding, current_objective
 
 
-def multistart(
-    flow: np.array,
-    distance: np.array,
-    neighbourhood_builder: str,
-    k: int,
-    solution_selector: str,
-    deterministic_start: list = [],
-    restrict_time: bool = False,
-) -> Tuple[List[int], float]:
-
-    # TODO: refactor for readability
-    multistart_solutions = []
-    multistart_costs = []
-    n = len(flow)
-
-    given_start = False
-    if deterministic_start != []:
-        given_start = True
-        assert len(deterministic_start) == k
-
-    t0 = time.time()
-    for j in range(k):
-        if given_start:
-            solution_encoding = deterministic_start[j]
-        else:
-            solution_encoding = [i for i in range(n)]
-            random.shuffle(solution_encoding)
-        solution_encoding, solution_cost = local_search(
-            solution_encoding, flow, distance, neighbourhood_builder, solution_selector
-        )
-        multistart_solutions.append(solution_encoding)
-        multistart_costs.append(solution_cost)
-
-    multistart_cost = np.min(multistart_costs)
-    multistart_solution = multistart_costs[np.argmin(multistart_costs)]
-
-    if restrict_time and (time.time() - t0 > 60):
-        return multistart_solution, multistart_cost
-
-    return multistart_solution, multistart_cost
-
-
-def disimilarity_local_search(
-    flow: np.array,
-    distance: np.array,
-    neighbourhood_builder: str,
-    k: int,
-    deterministic_start: list = [],
-    restrict_time: bool = False,
-) -> Tuple[List[int], float]:
-
-    n = len(flow)
-    local_optima = []
-    optima_costs = []
-
-    given_start = False
-    if deterministic_start != []:
-        given_start = True
-        assert len(deterministic_start) == k
-
-    if neighbourhood_builder == "total_swap":
-        neighbourhood = list(combinations(range(n), 2))
-    elif neighbourhood_builder == "adjacent_swap":
-        neighbourhood = [(i, (i + 1) % (n)) for i in range(n)]
-    else:
-        raise Exception(
-            "local_search neighbourood_builder must be one of 'total_swap', 'adjacent_swap'"
-        )
-
-    t0 = time.time()
-    for j in range(k):
-        # initial random feasible solution or given deterministic
-        if given_start:
-            solution_encoding = deterministic_start[j]
-        else:
-            solution_encoding = [i for i in range(n)]
-            random.shuffle(solution_encoding)
-
-        current_objective = calculate_objective(solution_encoding, flow, distance)
-
-        while True:
-            (
-                candidate_solution,
-                candidate_objective,
-            ) = calculate_neighbourhood_improving_similar(
-                neighbourhood,
-                flow,
-                distance,
-                local_optima,
-                solution_encoding,
-                current_objective,
-            )
-
-            if candidate_objective < current_objective:
-                current_objective = candidate_objective
-                solution_encoding = candidate_solution
-            else:
-                break
-
-        local_optima.append(solution_encoding)
-        optima_costs.append(current_objective)
-
-    multistart_disimilarity_cost = np.min(optima_costs)
-    multistart_disimilarity_solution = local_optima[np.argmin(optima_costs)]
-    if restrict_time and (time.time() - t0 > 60):
-        return multistart_disimilarity_solution, multistart_disimilarity_cost
-
-    return multistart_disimilarity_solution, multistart_disimilarity_cost
-
-
 if __name__ == "__main__":
-    instance_filepath = "../data/qapdata/tai256c.dat"
+    if len(sys.argv) != 3:
+        logging.error("Error: expected 2 arg")
+        logging.warning(
+            "Usage: python -m local_search_heuristics.local_search <instance_name> <restricted_time> <n_multistart>"
+        )
+        sys.exit(1)
+    instance_name = sys.argv[1]
+    restricted_time = sys.argv[2]
+
+    instance_filepath = f"data/qapdata/{instance_name}.dat"
+    optimal_solution_filepath = f"data/qapsoln/{instance_name}.sln"
     flow, distance = read_instance_data(instance_filepath)
-    n = len(flow)
-    best_obj, _ = read_optimal_solution("../data/qapsoln/tai256c.sln")
-
-    t0 = time.time()
-    fast_optimal_local_search_solution, fast_objective = local_search(
-        list(range(n)), flow, distance
+    optimal_objective, optimal_encoding = read_optimal_solution(
+        optimal_solution_filepath
     )
-    t1 = time.time()
-    print(f"fast local search took {t1-t0}")
 
-    print(
-        f"FAST Optimal solution, {fast_optimal_local_search_solution} has objective {fast_objective}"
+    start_time = time.time()
+    solution, objective = local_search(
+        list(range(len(flow))), flow, distance, restrict_time=restricted_time
     )
-    print(f"solution: {best_obj}")
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+    print(f"Heuristic solution, {solution} has objective {objective}")
+    print(f"Optimal solution, {optimal_encoding} has objective {optimal_objective}")

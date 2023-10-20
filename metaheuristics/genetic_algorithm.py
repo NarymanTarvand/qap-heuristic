@@ -1,11 +1,16 @@
 # Import functions to be used
+import logging
 import numpy as np  # For array manipulations
 import random  # for drawing random bits and setting seed
 import sys  # Store the biggest number
 import time
 
-#calculate_objective_vectorised(current_encoding, flow, distance, a, b)
-from global_calculations import calculate_objective_vectorised, read_instance_data
+# calculate_objective_vectorised(current_encoding, flow, distance, a, b)
+from global_calculations import (
+    calculate_objective_vectorised,
+    read_instance_data,
+    read_optimal_solution,
+)
 
 
 def create_population(N_pop, n):
@@ -49,8 +54,10 @@ def fitness(distance_data, flow_data, X_pop):
         X_i = np.array(
             X_pop[i][0]
         )  # Store the solution instance for a solution in the population. If the form [1,5,4,2,3]
-        
-        cost = calculate_objective_vectorised(X_i, flow_data, distance_data,0,0)  # Computes Cost
+
+        cost = calculate_objective_vectorised(
+            X_i, flow_data, distance_data, 0, 0
+        )  # Computes Cost
 
         X_pop[i][1] = cost  # Assign updated cost for the solution instance
 
@@ -246,7 +253,6 @@ def crossover_two_partial_map(parent1, parent2):
                 offspring1[j] = parent1[0][j]
 
             else:
-
                 # Facility is already assigned in offspring1
                 # Find the mapping
                 index1 = parent2[0].index(
@@ -296,7 +302,6 @@ def crossover_two_partial_map(parent1, parent2):
                 offspring1[k] = parent1[0][k]
 
             else:
-
                 # Facility is already assigned in offspring1
                 # Find the mapping
                 index1 = parent2[0].index(
@@ -486,21 +491,34 @@ def genetic_algorithm(
 
 
 if __name__ == "__main__":
-    # file_path = "Data Instance\\rou12.dat"
-    file_path = "Data Instance\\tai256c.dat"
-    # N_pop = 50, MaxIter = 100, p_cross = 0.8, p_mutate = 0.2 -> Time ~115.75 sec
-    # N_pop = 20, MaxIter = 100, p_cross = 0.8, p_mutate = 0.2 -> Time ~46.07 sec
-    # N_pop = 50, MaxIter = 100,  p_cross = 0.8, p_mutate = 0.8 -> Time ~115.34 sec
-    # N_pop = 50, MaxIter = 1000,  p_cross = 0.8, p_mutate = 0.8 -> Time ~1137.97 sec
-    # N_pop = 250, MaxIter = 100,  p_cross = 0.8, p_mutate = 0.8 -> Time ~ 576.79 sec, Z = 50061698
-    # N_pop = 10, MaxIter = 10000,  p_cross = 0.8, p_mutate = 0.1 -> Time ~ 2279.39 sec, Z = 49466068
-    [flow_data, distance_data] = read_instance_data(file_path)
+    if len(sys.argv) != 3:
+        logging.error("Error: expected 2 arg")
+        logging.warning(
+            "Usage: python -m metaheuristics.genetic_algorithm <instance_name> <restricted_time>"
+        )
+        sys.exit(1)
+    instance_name = sys.argv[1]
+    restricted_time = sys.argv[2]
+
+    instance_filepath = f"data/qapdata/{instance_name}.dat"
+    optimal_solution_filepath = f"data/qapsoln/{instance_name}.sln"
+    flow, distance = read_instance_data(instance_filepath)
+    optimal_objective, optimal_encoding = read_optimal_solution(
+        optimal_solution_filepath
+    )
 
     start_time = time.time()
     [solution, objective] = genetic_algorithm(
-        np.shape(flow_data)[0], 50, distance_data, flow_data, 100, 0.8, 0.8
+        n=len(flow),
+        N_pop=50,
+        distance_data=distance,
+        flow_data=flow,
+        MaxIter=100,
+        p_crossover=0.8,
+        p_mutation=0.8,
+        restrict_time=restricted_time,
     )
 
-    print(solution)
-    print(objective)
     print("--- %s seconds ---" % (time.time() - start_time))
+    print(f"Heuristic solution, {solution} has objective {objective}")
+    print(f"Optimal solution, {optimal_encoding} has objective {optimal_objective}")
